@@ -1,0 +1,37 @@
+import numpy as np
+from scipy.stats import mode
+
+class KNNClassifier:
+
+    def __init__(self, k=5, p=2):
+        self.k = k
+        self.p = p
+
+    # Minkowski distance
+    def metric(self, x1, x2):
+        return sum(abs(i - j) ** self.p for i, j in zip(x1, x2)) ** (1 / self.p)
+
+    def predict(self, X_train, y_train, X_test):
+        y_pred = np.zeros(X_test.shape[0])
+        for i in range(X_test.shape[0]):
+            dists = []
+            for j in range(X_train.shape[0]):
+                dists.append([j, self.metric(X_train[j, :], X_test[i, :])])
+            dists.sort(key=lambda i: i[1])
+            preds = [y_train[i[0]] for i in dists[:self.k]]
+            y_pred[i] = mode(preds)[0]
+
+        return y_pred
+
+if __name__ == '__main__':
+    data = np.loadtxt('wdbc.csv', delimiter=',', skiprows=1)
+    X = data[:, 2:]
+    y = data[:, 1]
+
+    mu = np.mean(X, axis=0)
+    sigma = np.mean(X, axis=0)
+    X = (X - mu) / sigma
+
+    for k in [1, 3, 5, 7, 9]:
+        model = KNNClassifier(k=k)
+        print(f'Accuracy with k={k}:', sum(model.predict(X, y, X) == y.T) / y.shape[0])

@@ -2,34 +2,46 @@ import numpy as np
 
 class LogisticRegression:
 
-    def __init__(self, alpha=0.1, n_iter=1000, lambd=0, threshold=0.5):
+    def __init__(self, alpha=0.001, tol=0.2, lambd=0, threshold=0.5):
         self.alpha = alpha
-        self.n_iter = n_iter
+        self.tol = tol
         self.lambd = lambd
         self.threshold = threshold
-        self._epsilon = 1e-10
 
     def fit(self, X, y):
         self.n_samples, self.n_features = X.shape
         X = np.hstack((np.ones((self.n_samples, 1)), X))
-        self.theta = np.random.randn(self.n_features + 1)
-        self._costs = np.zeros(self.n_iter)
+        self.theta = np.zeros(self.n_features + 1)
+        self._costs = []
 
-        for i in range(self.n_iter):
-            y_pred = self.predict(X)
-            self.theta -= self.alpha * self._gradient(X, y, y_pred)
-            self._costs[i] = self._cost(y, y_pred)
+        i = 0
+        while True:
+            y_pred = self.activation(X)
+            grad = self._gradient(X, y, y_pred)
+            self.theta -= self.alpha * grad
+            cost = self._cost(y, y_pred)
+            if cost < self.tol:
+                return self
+            self._costs.append(cost)
+            i += 1
 
         return self
 
+    def activation(self, X):
+        return self._sigmoid(X @ self.theta)
+
     def predict(self, X):
-        return self._sigmoid(X @ self.theta) >= self.threshold
+        return np.where(self.activation(X) >= self.threshold, 1.0, 0.0)
 
     def _sigmoid(self, z):
         return 1 / (1 + np.exp(-z))
 
     def _cost(self, y_true, y_pred):
-        cost = (1 / self.n_samples) * sum(-y_true * np.log(y_pred + self._epsilon) - (1 - y_true) * np.log(1 - y_pred + self._epsilon))
+        left = -y_true * np.log(y_pred)
+        right = -(1.0 - y_true) * np.log(1.0 - y_pred)
+        left[np.isnan(left)] = -np.inf
+        right[np.isnan(right)] = -np.inf
+        cost = (1 / self.n_samples) * sum(left + right)
         cost += (self.lambd / (2 * self.n_samples)) * sum(self.theta[1:] ** 2)
         return cost
 
@@ -41,7 +53,6 @@ class LogisticRegression:
 
 
 if __name__ == '__main__':
-    # TODO: Test deeply Logistic Regression
     data = np.loadtxt('logisticTest1.txt', delimiter=',')
     X = data[:, :-1]
     y = data[:, -1]
