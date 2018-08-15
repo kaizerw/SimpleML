@@ -1,10 +1,14 @@
 import numpy as np
+from sklearn.datasets import make_classification
+import matplotlib.pyplot as plt
+
 
 class LogisticRegression:
 
-    def __init__(self, alpha=0.001, tol=0.2, lambd=0, threshold=0.5):
+    def __init__(self, alpha=0.001, tol=0.2, max_iter=10000, lambd=0, threshold=0.5):
         self.alpha = alpha
         self.tol = tol
+        self.max_iter = max_iter
         self.lambd = lambd
         self.threshold = threshold
 
@@ -20,7 +24,7 @@ class LogisticRegression:
             grad = self._gradient(X, y, y_pred)
             self.theta -= self.alpha * grad
             cost = self._cost(y, y_pred)
-            if cost < self.tol:
+            if cost < self.tol or i > self.max_iter:
                 return self
             self._costs.append(cost)
             i += 1
@@ -53,17 +57,18 @@ class LogisticRegression:
 
 
 if __name__ == '__main__':
-    data = np.loadtxt('logisticTest1.txt', delimiter=',')
-    X = data[:, :-1]
-    y = data[:, -1]
+    X, y = make_classification(n_samples=500, n_features=10, n_informative=10, 
+                               n_redundant=0, n_repeated=0, n_classes=2) 
 
-    model = LogisticRegression(lambd=1)
+    model = LogisticRegression()
     model.fit(X, y)
-    print('Costs:', model._costs)
+    
+    plt.plot(model._costs)
+    plt.title('Costs')
+    plt.show()
 
     print('theta:', model.theta)
 
     X = np.hstack((np.ones((X.shape[0], 1)), X))
     print('Accuracy:', sum(model.predict(X) == y.T) / y.shape[0])
 
-    print('Predict:', model._sigmoid(np.array([1, 45, 85]) @ model.theta))

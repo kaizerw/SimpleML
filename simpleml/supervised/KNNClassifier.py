@@ -1,5 +1,8 @@
 import numpy as np
 from scipy.stats import mode
+from sklearn.datasets import make_blobs
+import matplotlib.pyplot as plt
+
 
 class KNNClassifier:
 
@@ -24,9 +27,7 @@ class KNNClassifier:
         return y_pred
 
 if __name__ == '__main__':
-    data = np.loadtxt('wdbc.csv', delimiter=',', skiprows=1)
-    X = data[:, 2:]
-    y = data[:, 1]
+    X, y = make_blobs(n_samples=500, n_features=10, centers=5) 
 
     mu = np.mean(X, axis=0)
     sigma = np.mean(X, axis=0)

@@ -1,4 +1,6 @@
 import numpy as np
+from sklearn.datasets import make_regression
+import matplotlib.pyplot as plt
 
 
 class LinearRegression:
@@ -35,9 +37,8 @@ class LinearRegression:
 
 
 if __name__ == '__main__':
-    data = np.loadtxt('housing.csv', delimiter=',')
-    X = data[:, :-1]
-    y = data[:, -1]
+    X, y = make_regression(n_samples=500, n_features=10, 
+                           n_informative=10, n_targets=1) 
 
     mu = X.mean(axis=0)
     sigma = X.std(axis=0)
@@ -45,11 +46,9 @@ if __name__ == '__main__':
 
     model = LinearRegression(n_iter=50000)
     model.fit(X, y)
-    print('Costs:', model._costs)
+    
+    plt.plot(model._costs)
+    plt.title('Costs')
+    plt.show()
 
     print('theta:', model.theta)
-
-    x_test = np.array([1650, 3])
-    x_test = (x_test - mu) / sigma
-    x_test = np.hstack(([1], x_test))
-    print('Predict:', model.predict(x_test))
