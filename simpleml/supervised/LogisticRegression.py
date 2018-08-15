@@ -46,8 +46,8 @@ class LogisticRegression:
         return cost
 
     def _gradient(self, X, y_true, y_pred):
-        diff = np.reshape((y_pred - y_true), (-1, 1))
-        grad = (1 / self.n_samples) * sum(diff * X)
+        error = np.reshape((y_pred - y_true), (-1, 1))
+        grad = (1 / self.n_samples) * sum(error * X)
         grad[1:] += (self.lambd / self.n_samples) * self.theta[1:]
         return grad
 
