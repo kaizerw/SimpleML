@@ -5,9 +5,10 @@ import matplotlib.pyplot as plt
 
 class LogisticRegression:
 
-    def __init__(self, alpha=0.001, n_iter=10000, lambd=0, threshold=0.5):
+    def __init__(self, alpha=1e-3, max_iter=1e4, tol=1e-3, lambd=0, threshold=0.5):
         self.alpha = alpha
-        self.n_iter = n_iter
+        self.max_iter = max_iter
+        self.tol = tol
         self.lambd = lambd
         self.threshold = threshold
         self.classifiers = 1
@@ -25,13 +26,18 @@ class LogisticRegression:
         y_true = np.zeros((y.shape[0], n_classes))
         for classe in range(n_classes):
             y_true[np.where(y==classe), classe] = 1
+
+        if self.classifiers == 1:
+            y_true = y
  
         self.theta = np.zeros((self.n_features + 1, self.classifiers))
         
         self._costs = []
 
         for classifier in range(self.classifiers):
-            for i in range(self.n_iter):
+            
+            i = 0
+            while True:
                 theta = self.theta[:, classifier]
                 y_pred = self.activation(X, theta)
                 y = np.reshape(y_true[:, classifier], (-1, 1))
@@ -41,6 +47,11 @@ class LogisticRegression:
                 cost = self._cost(y, y_pred, theta)
                 self._costs.append(cost)
 
+                if i >= self.max_iter or cost <= self.tol:
+                    break
+                
+                i += 1
+
         return self
 
     def activation(self, X, theta):
@@ -49,9 +60,12 @@ class LogisticRegression:
 
     def predict(self, X):
         if self.classifiers > 2:
-            return np.argmax([self.activation(X, self.theta[:, classifier]) 
-                              for classifier in range(self.classifiers)])
-        return np.where(self.activation(X) >= self.threshold, 1.0, 0.0)
+            y = np.zeros((X.shape[0], 1))
+            for i in range(X.shape[0]):
+                y[i, 0] = np.argmax([self.activation(X[i, :], self.theta[:, classifier]) 
+                                     for classifier in range(self.classifiers)])
+            return y
+        return np.where(self.activation(X, self.theta[:, 0]) >= self.threshold, 1.0, 0.0)
 
     def _sigmoid(self, z):
         return 1 / (1 + np.exp(-z))
@@ -73,8 +87,6 @@ class LogisticRegression:
 
 
 if __name__ == '__main__':
-    # TODO: Test deeply LogisticRegression with multiclasses
-
     X, y = make_classification(n_samples=500, n_features=10, n_informative=10, 
                                n_redundant=0, n_repeated=0, n_classes=5) 
 
@@ -85,9 +97,7 @@ if __name__ == '__main__':
     plt.title('Costs')
     plt.show()
 
-    print('theta:', model.theta)
-
     X = np.hstack((np.ones((X.shape[0], 1)), X))
-
     y = np.reshape(y, (y.shape[0], 1))
+   
     print('Accuracy:', sum(model.predict(X) == y) / y.shape[0])
