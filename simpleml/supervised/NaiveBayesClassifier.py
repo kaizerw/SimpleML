@@ -42,7 +42,7 @@ class NaiveBayesClassifier:
                 # A posteriori probability
                 posteriori_probs[classe] *= priori_probs[classe]
 
-            # Predict class with the greatest a posteriori probability
+            # Predict the class with greatest a posteriori probability
             max_prob = -np.inf
             for classe in classes:
                 prob = posteriori_probs[classe]

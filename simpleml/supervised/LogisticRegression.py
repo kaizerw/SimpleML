@@ -6,12 +6,12 @@ import matplotlib.pyplot as plt
 class LogisticRegression:
 
     def __init__(self, alpha=1e-3, max_iter=1e4, tol=1e-3, lambd=0, threshold=0.5):
-        self.alpha = alpha
-        self.max_iter = max_iter
-        self.tol = tol
-        self.lambd = lambd
-        self.threshold = threshold
-        self.classifiers = 1
+        self.alpha = alpha # Learning rate
+        self.max_iter = max_iter # Max iterations
+        self.tol = tol # Error tolerance
+        self.lambd = lambd # Regularization constant
+        self.threshold = threshold # Threshold classification
+        self.classifiers = 1 # Number of classifiers
 
     def fit(self, X, y):
         self.n_samples, self.n_features = X.shape
@@ -32,7 +32,7 @@ class LogisticRegression:
  
         self.theta = np.zeros((self.n_features + 1, self.classifiers))
         
-        self._costs = []
+        self.costs = []
 
         for classifier in range(self.classifiers):
             
@@ -40,12 +40,12 @@ class LogisticRegression:
             while True:
                 theta = self.theta[:, classifier]
                 y_pred = self.activation(X, theta)
-                y = y_truey_true[:, classifier].reshape((-1, 1))
+                y = y_true[:, classifier].reshape((-1, 1))
 
-                grad = self._gradient(X, y, y_pred, theta)
+                grad = self.gradient(X, y, y_pred, theta)
                 self.theta[:, classifier] -= self.alpha * grad
-                cost = self._cost(y, y_pred, theta)
-                self._costs.append(cost)
+                cost = self.cost(y, y_pred, theta)
+                self.costs.append(cost)
 
                 if i >= self.max_iter or cost <= self.tol:
                     break
@@ -55,8 +55,7 @@ class LogisticRegression:
         return self
 
     def activation(self, X, theta):
-        activation = self._sigmoid(X @ theta)
-        return activation.reshape((-1, 1))
+        return self.sigmoid(X @ theta).reshape((-1, 1))
 
     def predict(self, X):
         if self.classifiers > 2:
@@ -67,10 +66,16 @@ class LogisticRegression:
             return y
         return np.where(self.activation(X, self.theta[:, 0]) >= self.threshold, 1.0, 0.0)
 
-    def _sigmoid(self, z):
+    def sigmoid(self, z):
         return 1 / (1 + np.exp(-z))
 
-    def _cost(self, y_true, y_pred, theta):
+    def gradient(self, X, y_true, y_pred, theta):
+        error = y_pred - y_true
+        grad = (1 / self.n_samples) * sum(error * X)
+        grad[1:] += (self.lambd / self.n_samples) * theta[1:]
+        return grad
+
+    def cost(self, y_true, y_pred, theta):
         left = -y_true * np.log(y_pred)
         right = -(1.0 - y_true) * np.log(1.0 - y_pred)
         left[np.isnan(left)] = -np.inf
@@ -78,12 +83,6 @@ class LogisticRegression:
         cost = (1 / self.n_samples) * sum(left + right)
         cost += (self.lambd / (2 * self.n_samples)) * sum(theta[1:] ** 2)
         return cost
-
-    def _gradient(self, X, y_true, y_pred, theta):
-        error = y_pred - y_true
-        grad = (1 / self.n_samples) * sum(error * X)
-        grad[1:] += (self.lambd / self.n_samples) * theta[1:]
-        return grad
 
 
 if __name__ == '__main__':
@@ -97,7 +96,7 @@ if __name__ == '__main__':
     model = LogisticRegression()
     model.fit(X, y)
     
-    plt.plot(model._costs)
+    plt.plot(model.costs)
     plt.title('Costs')
     plt.show()
 
