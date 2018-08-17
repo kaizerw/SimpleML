@@ -16,7 +16,7 @@ class LogisticRegression:
     def fit(self, X, y):
         self.n_samples, self.n_features = X.shape
         X = np.hstack((np.ones((self.n_samples, 1)), X))
-        y = np.reshape(y, (y.shape[0], 1))
+        y = y.reshape((-1, 1))
 
         n_classes = len(np.unique(y))
 
@@ -40,7 +40,7 @@ class LogisticRegression:
             while True:
                 theta = self.theta[:, classifier]
                 y_pred = self.activation(X, theta)
-                y = np.reshape(y_true[:, classifier], (-1, 1))
+                y = y_truey_true[:, classifier].reshape((-1, 1))
 
                 grad = self._gradient(X, y, y_pred, theta)
                 self.theta[:, classifier] -= self.alpha * grad
@@ -56,7 +56,7 @@ class LogisticRegression:
 
     def activation(self, X, theta):
         activation = self._sigmoid(X @ theta)
-        return np.reshape(activation, (-1, 1))
+        return activation.reshape((-1, 1))
 
     def predict(self, X):
         if self.classifiers > 2:
@@ -88,7 +88,11 @@ class LogisticRegression:
 
 if __name__ == '__main__':
     X, y = make_classification(n_samples=500, n_features=10, n_informative=10, 
-                               n_redundant=0, n_repeated=0, n_classes=5) 
+                               n_redundant=0, n_repeated=0, n_classes=5)
+
+    mu = X.mean(axis=0)
+    sigma = X.std(axis=0)
+    X = (X - mu) / sigma
 
     model = LogisticRegression()
     model.fit(X, y)
@@ -98,6 +102,6 @@ if __name__ == '__main__':
     plt.show()
 
     X = np.hstack((np.ones((X.shape[0], 1)), X))
-    y = np.reshape(y, (y.shape[0], 1))
+    y = y.reshape((-1, 1))
    
     print('Accuracy:', sum(model.predict(X) == y) / y.shape[0])

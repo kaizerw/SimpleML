@@ -26,6 +26,7 @@ class KNNClassifier:
 
         return y_pred
 
+
 if __name__ == '__main__':
     X, y = make_blobs(n_samples=500, n_features=10, centers=5) 
 
