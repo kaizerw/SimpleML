@@ -107,7 +107,7 @@ class DecisionTreeClassifier:
 
     def _choose_best_feature(self, samples_idx, features_idx):
         best_feature = -1
-        max_gain = -1
+        max_gain = -np.inf
         for feature in features_idx:
             gain = self._eval_criterion[self.criterion](samples_idx, feature)
             if gain > max_gain:
@@ -116,13 +116,55 @@ class DecisionTreeClassifier:
         return best_feature
 
     def _information_gain(self, samples_idx, feature):
-        return 0
-        
+        info_all = 0
+        for classe in self.classes:
+            n_classe = sum(self.y[samples_idx]==classe)
+            p_classe = n_classe / len(samples_idx)
+            if p_classe > 0:
+                info_all += p_classe * np.log2(p_classe)
+        info_all = -info_all
+
+        info_feature = 0
+        for value in np.unique(self.X[samples_idx, feature]):
+            n_value = sum(self.X[samples_idx, feature]==value)
+            p_value = n_value / len(samples_idx)
+            
+            info_value = 0
+            for classe in self.classes:
+                n_classe = sum(self.y[np.where(self.X[samples_idx, feature]==value)]==classe)
+                p_classe = n_classe / n_value
+                if p_classe > 0: 
+                    info_value += p_classe * np.log2(p_classe)
+            info_feature += p_value * -info_value
+
+        return info_all - info_feature
+
+    # TODO: Check this criterion
     def _gain_ratio(self, samples_idx, feature):
+        info_feature = 0
+        for value in np.unique(self.X[samples_idx, feature]):
+            n_value = sum(self.X[samples_idx, feature]==value)
+            
+            info_value = 0
+            for classe in self.classes:
+                n_classe = sum(self.y[np.where(self.X[samples_idx, feature]==value), 0]==classe)
+                p_classe = n_classe / n_value
+                if p_classe > 0: 
+                    info_value += p_classe * np.log2(p_classe)
+            if info_value > 0:
+                info_feature += info_value * np.log2(info_value)
+        split_info = -info_feature
+        if split_info > 0:
+            return self._information_gain(samples_idx, feature) / split_info
         return 0
 
+    # TODO: Finish this criterion
     def _gini_index(self, samples_idx, feature):
-        return 0
+        gini_all = 1
+        for classe in self.classes:
+            prob = sum(self.y[samples_idx, 0]) / len(samples_idx)
+            gini_all -= prob ** 2
+        return gini_all
 
     
 if __name__ == '__main__':
