@@ -17,7 +17,6 @@ class DecisionTreeClassifier:
 
     def fit(self, X, y):
         self.n_samples, self.n_features = X.shape
-        y = y.reshape((-1, 1))
         self.classes = np.unique(y)
         self.X = X
         self.y = y
@@ -61,7 +60,7 @@ class DecisionTreeClassifier:
         # For each distinct value of feature 'best_feature'...
         for value in A_values:
             # Collect only samples with 'best_feature' value equal to 'value'
-            new_samples_idx = np.where(self.X[samples_idx, best_feature]==value)[0]
+            new_samples_idx = np.where(self.X[samples_idx, best_feature] == value)[0]
             new_samples_idx = samples_idx[new_samples_idx]
             
             # If 'new_samples_idx' is empty, return a leave node labeled with the most
@@ -83,12 +82,12 @@ class DecisionTreeClassifier:
         return node
 
     def predict(self, x):
-        y_pred = []
+        y_pred = np.zeros(x.shape[0])
         i = 0
         node = self._tree
         while i < x.shape[0]:
             if node['is_leave']:
-                y_pred.append(node['prediction'])
+                y_pred[i]= node['prediction']
                 i += 1
                 node = self._tree
             else:
@@ -97,17 +96,17 @@ class DecisionTreeClassifier:
                     value = child['value']
                     if x[i, feature] == value:
                         if child['is_leave']:
-                            y_pred.append(child['prediction'])
+                            y_pred[i] = child['prediction']
                             i += 1
                             node = self._tree
                         else:
                             node = child['tree']
                         break
-        return np.reshape(np.array(y_pred), (-1, 1))
+        return y_pred
 
     def _all_same_class(self, samples_idx):
         for classe in self.classes:
-            count = sum(self.y[samples_idx, 0]==classe)
+            count = sum(self.y[samples_idx] == classe)
             if count == self.n_samples:
                 return True
         return False
@@ -116,7 +115,7 @@ class DecisionTreeClassifier:
         clas = None
         max_samples = -np.inf
         for classe in self.classes:
-            count = sum(self.y[samples_idx, 0]==classe)
+            count = sum(self.y[samples_idx] == classe)
             if count > max_samples:
                 max_samples = count
                 clas = classe
@@ -138,7 +137,7 @@ class DecisionTreeClassifier:
         
         if feature is None:
             for classe in self.classes:
-                n_classe = sum(self.y[samples_idx, 0] == classe)
+                n_classe = sum(self.y[samples_idx] == classe)
                 prob_classe = n_classe / n_total
                 if prob_classe > 0:
                     info += prob_classe * np.log2(prob_classe)
@@ -180,11 +179,11 @@ class DecisionTreeClassifier:
         return 0
 
     def _gini(self, samples_idx):
-        gini = 1.0
+        gini = 1
         n_total = len(samples_idx)
 
         for classe in self.classes:
-            n_samples = sum(self.y[samples_idx, 0])
+            n_samples = sum(self.y[samples_idx])
             prob_classe = n_samples / n_total
             gini -= prob_classe ** 2
 
@@ -197,7 +196,7 @@ class DecisionTreeClassifier:
         n_total = len(samples_idx)
         values = np.unique(self.X[samples_idx, feature])
         for value in values:
-            ginis_feature[value] = 0.0
+            ginis_feature[value] = 0
 
             n_values = np.sum(self.X[samples_idx, feature] == value)
             prob_value = n_values / n_total
@@ -211,13 +210,12 @@ class DecisionTreeClassifier:
                 feature_samples_idx = samples_idx[np.where(self.X[samples_idx, feature] != value)]
                 ginis_feature[value] += prob_value * self._gini(feature_samples_idx)
         
-        return gini_all - min(v for _, v in ginis_feature.items())
+        return gini_all - min(ginis_feature.values())
 
     
 if __name__ == '__main__':
     X, y = make_classification(n_samples=500, n_features=10, n_informative=10, 
                                n_redundant=0, n_repeated=0, n_classes=5)
-    y = y.reshape((-1, 1))
 
     # By now, only works with categorical features
     # TODO: Generalize to numeric and mixed features
@@ -226,5 +224,6 @@ if __name__ == '__main__':
     model = DecisionTreeClassifier()
     model.fit(X, y)
 
+    n_samples_test = y.shape[0]
     y_pred = model.predict(X)
-    print('Accuracy:', (sum(y_pred==y) / y.shape[0]))
+    print('Accuracy:', (sum(y_pred == y) / n_samples_test))

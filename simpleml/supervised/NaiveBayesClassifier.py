@@ -11,32 +11,31 @@ class NaiveBayesClassifier:
     def fit(self, X, y):
         self.X = X
         self.y = y
+        self.n_samples, self.n_features = self.X.shape
+        self.classes = np.unique(self.y)
+        self.n_classes = len(self.classes)
 
-    def predict(self, x):
-        X = self.X
-        y = np.reshape(self.y, (self.y.shape[0], 1))
-
-        # Target classes
-        classes = np.unique(y)
+    def predict(self, X):
+        n_samples_test = X.shape[0]
 
         # predicted classes
-        y_pred = np.zeros((x.shape[0], 1))
+        y_pred = np.zeros(n_samples_test)
 
         # A priori probability
         priori_probs = {}
-        for classe in classes:
-            priori_probs[classe] = sum(y==classe) / y.shape[0]
+        for classe in self.classes:
+            priori_probs[classe] = sum(y == classe) / self.n_samples
 
-        for i in range(x.shape[0]):
+        for i in range(n_samples_test):
             posteriori_probs = {}
-            for classe in classes:
-                posteriori_probs[classe] = 1.0
+            for classe in self.classes:
+                posteriori_probs[classe] = 1
 
-                for feature in range(x.shape[1]):
-                    idx = np.where(X[:, feature]==x[i, feature])
-                    samples = sum(y[idx]==classe)
+                for feature in range(self.n_features):
+                    idx = np.where(self.X[:, feature] == X[i, feature])
+                    samples = sum(self.y[idx] == classe)
                     # Conditional probability
-                    prob = (samples + self.alpha) / (sum(y==classe) + self.alpha * len(classes))
+                    prob = (samples + self.alpha) / (sum(self.y == classe) + self.alpha * self.n_classes)
                     posteriori_probs[classe] *= prob
 
                 # A posteriori probability
@@ -44,11 +43,11 @@ class NaiveBayesClassifier:
 
             # Predict the class with greatest a posteriori probability
             max_prob = -np.inf
-            for classe in classes:
+            for classe in self.classes:
                 prob = posteriori_probs[classe]
                 if prob > max_prob:
                     max_prob = prob
-                    y_pred[i, 0] = classe
+                    y_pred[i] = classe
         
         return y_pred
 
@@ -63,8 +62,7 @@ if __name__ == '__main__':
 
     model = NaiveBayesClassifier()
     model.fit(X, y)
-
-    y = y.reshape((-1, 1))
-        
+    
+    n_samples_test = X.shape[0]
     y_pred = model.predict(X)
-    print('Accuracy:', (sum(y_pred==y) / y.shape[0]))
+    print('Accuracy:', (sum(y_pred == y) / n_samples_test))

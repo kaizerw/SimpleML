@@ -11,7 +11,7 @@ class KNNClassifier:
         self.p = p # Power parameter to Minkowski distance
 
     # Minkowski distance
-    def metric(self, x1, x2):
+    def _metric(self, x1, x2):
         return sum(abs(i - j) ** self.p for i, j in zip(x1, x2)) ** (1 / self.p)
 
     def predict(self, X_train, y_train, X_test):
@@ -21,9 +21,9 @@ class KNNClassifier:
             # Calculate dists from all samples to X_test[i]
             dists = []
             for j in range(X_train.shape[0]):
-                dists.append([j, self.metric(X_train[j, :], X_test[i, :])])
+                dists.append([j, self._metric(X_train[j, :], X_test[i, :])])
             
-            # Collecting the k closest samples
+            # Collect the k closest samples
             dists.sort(key=lambda i: i[1])
             preds = [y_train[i[0]] for i in dists[:self.k]]
             
@@ -34,12 +34,14 @@ class KNNClassifier:
 
 
 if __name__ == '__main__':
-    X, y = make_blobs(n_samples=500, n_features=10, centers=5) 
+    X, y = make_blobs(n_samples=500, n_features=10, centers=5)
 
     mu = np.mean(X, axis=0)
     sigma = np.mean(X, axis=0)
     X = (X - mu) / sigma
 
+    n_samples_test = X.shape[0]
     for k in [1, 3, 5, 7, 9]:
         model = KNNClassifier(k=k)
-        print(f'Accuracy with k={k}:', sum(model.predict(X, y, X) == y.T) / y.shape[0])
+        y_pred = model.predict(X, y, X)
+        print(f'Accuracy with k={k}:', sum(y_pred == y) / n_samples_test)
