@@ -24,9 +24,9 @@ class LogisticRegression:
 
         y_true = np.zeros((self.n_samples, n_classes))
         for classe in range(n_classes):
-            y_true[np.where(self.y == classe), classe] = 1
+            y_true[self.y == classe, classe] = 1
         if self.classifiers == 1:
-            y_true = self.y
+            y_true[self.y == 1, 0] = 1
  
         self.theta = np.zeros((self.classifiers, self.n_features + 1))
         self.costs = []

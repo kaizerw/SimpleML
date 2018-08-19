@@ -60,7 +60,7 @@ class DecisionTreeClassifier:
         # For each distinct value of feature 'best_feature'...
         for value in A_values:
             # Collect only samples with 'best_feature' value equal to 'value'
-            new_samples_idx = np.where(self.X[samples_idx, best_feature] == value)[0]
+            new_samples_idx = self.X[samples_idx, best_feature] == value
             new_samples_idx = samples_idx[new_samples_idx]
             
             # If 'new_samples_idx' is empty, return a leave node labeled with the most

@@ -32,7 +32,7 @@ class NaiveBayesClassifier:
                 posteriori_probs[classe] = 1
 
                 for feature in range(self.n_features):
-                    idx = np.where(self.X[:, feature] == X[i, feature])
+                    idx = self.X[:, feature] == X[i, feature]
                     samples = sum(self.y[idx] == classe)
                     # Conditional probability
                     prob = (samples + self.alpha) / (sum(self.y == classe) + self.alpha * self.n_classes)
