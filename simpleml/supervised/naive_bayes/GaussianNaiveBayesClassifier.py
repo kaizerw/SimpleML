@@ -46,7 +46,6 @@ class GaussianNaiveBayesClassifier:
         for i in range(n_samples_test):
             posteriori_probs = np.ones(self.n_classes)
             for classe in self.classes:
-                posteriori_probs[classe] = 1
                 for feature in range(self.n_features):
                     x = X[i, feature]
                     # Conditional probability
@@ -55,7 +54,7 @@ class GaussianNaiveBayesClassifier:
                         sigma = self.sigma[classe, feature]
                         prob = self._gaussian(x, mu, sigma)
                     elif X[:, feature].dtype == 'int64':
-                        prob = self.conditional_probs[classe, feature, X[i, feature]]
+                        prob = self.conditional_probs[classe, feature, x]
                     posteriori_probs[classe] *= prob
 
                 # A posteriori probability
