@@ -15,40 +15,42 @@ class GaussianNaiveBayesClassifier:
         self.classes = np.unique(self.y)
         self.n_classes = len(self.classes)
 
+        # A priori probabilities
+        self.priori_probs = {}
+        for classe in self.classes:
+            n_samples_classe = sum(y == classe)
+            self.priori_probs[classe] = n_samples_classe / self.n_samples
+        
+        # Precompute mus and sigmas
+        self.mu = {}
+        self.sigma = {}
+        for classe in self.classes:
+            for feature in range(self.n_features):
+                idx = self.y == classe
+                self.mu[classe, feature] = np.mean(X[idx, feature])
+                self.sigma[classe, feature] = np.std(X[idx, feature])
+
     def predict(self, X):
         n_samples_test = X.shape[0]
-
-        # predicted classes
         y_pred = np.zeros(n_samples_test)
 
-        # A priori probability
-        priori_probs = {}
-        for classe in self.classes:
-            priori_probs[classe] = sum(y == classe) / self.n_samples
-
         for i in range(n_samples_test):
-            posteriori_probs = {}
+            posteriori_probs = np.ones(self.n_classes)
             for classe in self.classes:
                 posteriori_probs[classe] = 1
-
                 for feature in range(self.n_features):
-                    idx = self.y == classe
+                    x = X[i, feature]
+                    mu = self.mu[classe, feature]
+                    sigma = self.sigma[classe, feature]
                     # Conditional probability
-                    mu = np.mean(X[idx, feature])
-                    sigma = np.std(X[idx, feature])
-                    prob = self._gaussian(X[i, feature], mu, sigma)
+                    prob = self._gaussian(x, mu, sigma)
                     posteriori_probs[classe] *= prob
 
                 # A posteriori probability
-                posteriori_probs[classe] *= priori_probs[classe]
+                posteriori_probs[classe] *= self.priori_probs[classe]
 
             # Predict the class with greatest a posteriori probability
-            max_prob = -np.inf
-            for classe in self.classes:
-                prob = posteriori_probs[classe]
-                if prob > max_prob:
-                    max_prob = prob
-                    y_pred[i] = classe
+            y_pred[i] = np.argmax(posteriori_probs)
 
         return y_pred
 
@@ -59,6 +61,10 @@ class GaussianNaiveBayesClassifier:
 if __name__ == '__main__':
     X, y = make_classification(n_samples=500, n_features=10, n_informative=10, 
                                n_redundant=0, n_repeated=0, n_classes=5)
+
+    mu = X.mean(axis=0)
+    sigma = X.std(axis=0)
+    X = (X - mu) / sigma
 
     model = GaussianNaiveBayesClassifier()
     model.fit(X, y)
