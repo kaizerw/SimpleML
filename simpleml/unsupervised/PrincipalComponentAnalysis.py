@@ -15,9 +15,6 @@ class PrincipalComponentAnalysis:
         self.U = self.U[:, :self.n_components]
 
     def transform(self, X):
-        #Z = np.zeros((X.shape[0], 2))
-        #for i in range(X.shape[0]):
-        #    Z[i, :] = X[i, :] @ U_reduced
         return X @ self.U
 
 
