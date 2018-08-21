@@ -24,14 +24,12 @@ class NaiveBayesClassifier:
         # Conditional probabilities
         self.conditional_probs = {}
         for classe in self.classes:
-            self.conditional_probs[classe] = {}
             for feature in range(self.n_features):
-                self.conditional_probs[classe][feature] = {}
                 for value in np.unique(self.X[:, feature]):
                     idx = self.X[:, feature] == value
                     samples = sum(self.y[idx] == classe)
                     prob = (samples + self.alpha) / (sum(self.y == classe) + self.alpha * self.n_classes)
-                    self.conditional_probs[classe][feature][value] = prob
+                    self.conditional_probs[classe, feature, value] = prob
 
     def predict(self, X):
         n_samples_test = X.shape[0]
@@ -41,7 +39,7 @@ class NaiveBayesClassifier:
             posteriori_probs = np.ones(self.n_classes)
             for classe in self.classes:
                 for feature in range(self.n_features):
-                    prob = self.conditional_probs[classe][feature][X[i, feature]]
+                    prob = self.conditional_probs[classe, feature, X[i, feature]]
                     posteriori_probs[classe] *= prob
 
                 # A posteriori probability
@@ -57,8 +55,7 @@ if __name__ == '__main__':
     X, y = make_classification(n_samples=500, n_features=10, n_informative=10, 
                                n_redundant=0, n_repeated=0, n_classes=5)
 
-    # By now, only works with categorical features
-    # TODO: Generalize to numeric and mixed features
+    # This classifier only works with categorical features
     X = abs(X.astype(int))
 
     model = NaiveBayesClassifier()

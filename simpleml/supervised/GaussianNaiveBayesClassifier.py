@@ -5,8 +5,8 @@ import matplotlib.pyplot as plt
 
 class GaussianNaiveBayesClassifier:
 
-    def __init__(self):
-        pass
+    def __init__(self, alpha=1):
+        self.alpha = alpha # Laplace smoothing parameter
 
     def fit(self, X, y):
         self.X = X
@@ -21,14 +21,23 @@ class GaussianNaiveBayesClassifier:
             n_samples_classe = sum(y == classe)
             self.priori_probs[classe] = n_samples_classe / self.n_samples
         
-        # Precompute mus and sigmas
+        # Precompute mus and sigmas to numeric features and
+        # precompute conditional probabilities to categorical features
         self.mu = {}
         self.sigma = {}
+        self.conditional_probs = {}
         for classe in self.classes:
             for feature in range(self.n_features):
-                idx = self.y == classe
-                self.mu[classe, feature] = np.mean(X[idx, feature])
-                self.sigma[classe, feature] = np.std(X[idx, feature])
+                if self.X[:, feature].dtype == 'float64':
+                    idx = self.y == classe
+                    self.mu[classe, feature] = np.mean(X[idx, feature])
+                    self.sigma[classe, feature] = np.std(X[idx, feature])
+                elif self.X[:, feature].dtype == 'int64':
+                    for value in np.unique(self.X[:, feature]):
+                        idx = self.X[:, feature] == value
+                        n_samples = sum(self.y[idx] == classe)
+                        prob = (n_samples + self.alpha) / (sum(self.y == classe) + self.alpha * self.n_classes)
+                        self.conditional_probs[classe, feature, value] = prob                
 
     def predict(self, X):
         n_samples_test = X.shape[0]
@@ -40,10 +49,13 @@ class GaussianNaiveBayesClassifier:
                 posteriori_probs[classe] = 1
                 for feature in range(self.n_features):
                     x = X[i, feature]
-                    mu = self.mu[classe, feature]
-                    sigma = self.sigma[classe, feature]
                     # Conditional probability
-                    prob = self._gaussian(x, mu, sigma)
+                    if X[:, feature].dtype == 'float64':
+                        mu = self.mu[classe, feature]
+                        sigma = self.sigma[classe, feature]
+                        prob = self._gaussian(x, mu, sigma)
+                    elif X[:, feature].dtype == 'int64':
+                        prob = self.conditional_probs[classe, feature, X[i, feature]]
                     posteriori_probs[classe] *= prob
 
                 # A posteriori probability
@@ -66,9 +78,14 @@ if __name__ == '__main__':
     sigma = X.std(axis=0)
     X = (X - mu) / sigma
 
+    # Create artificial categorical feature
+    X[:, 0] *= np.random.randint(10, size=X.shape[0])
+    X[:, 0] = abs(X[:, 0].astype(np.int64))
+
     model = GaussianNaiveBayesClassifier()
     model.fit(X, y)
 
     n_samples_test = X.shape[0]
     y_pred = model.predict(X)
     print('Accuracy:', (sum(y_pred == y) / n_samples_test))
+    
