@@ -17,6 +17,9 @@ class PrincipalComponentAnalysis:
     def transform(self, X):
         return X @ self.U
 
+    def inverse_transform(self, Z):
+        return Z @ self.U.T
+
 
 if __name__ == '__main__': 
     X, y = make_classification(n_samples=500, n_features=10, n_informative=10, 
@@ -29,4 +32,7 @@ if __name__ == '__main__':
     pca = PrincipalComponentAnalysis(2)
     pca.fit(X)
     Z = pca.transform(X)
-    print(Z)
+    print('Principal Components:', Z)
+
+    X_approx = pca.inverse_transform(Z)
+    print('Error X_approx:', sum(sum(X_approx - X)))
