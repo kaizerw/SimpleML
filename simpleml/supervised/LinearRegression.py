@@ -5,10 +5,11 @@ import matplotlib.pyplot as plt
 
 class LinearRegression:
 
-    def __init__(self, alpha=1e-3, max_iter=1e4, tol=1e-3):
+    def __init__(self, alpha=1e-3, max_iter=1e4, tol=1e-3, lambd=0):
         self.alpha = alpha # Learning rate
         self.max_iter = max_iter # Max iterations
         self.tol = tol # Error tolerance
+        self.lambd = lambd # Regularization constant
 
     def fit(self, X, y):
         self.n_samples, self.n_features = X.shape
@@ -26,6 +27,8 @@ class LinearRegression:
 
             if i >= self.max_iter or cost <= self.tol:
                 break
+            
+            i += 1
 
         return self
 
@@ -43,12 +46,15 @@ class LinearRegression:
 
     def _gradient(self, y_pred):
         error = y_pred - self.y
-        return (1 / self.n_samples) * sum((error * self.X.T).T)
+        grad = (1 / self.n_samples) * sum((error * self.X.T).T)
+        grad[1:] += ((self.lambd / self.n_samples) * sum(self.theta[1:]))
+        return grad
 
     def _cost(self, y_pred):
         error = y_pred - self.y
-        return (1 / (2 * self.n_samples)) * sum(error ** 2)
-
+        cost = (1 / (2 * self.n_samples)) * sum(error ** 2)
+        cost += ((self.lambd / (2 * self.n_samples)) * sum(self.theta[1:]))
+        return cost
 
 if __name__ == '__main__':
     X, y = make_regression(n_samples=500, n_features=10, 
