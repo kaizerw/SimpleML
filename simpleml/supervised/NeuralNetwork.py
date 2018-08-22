@@ -20,8 +20,10 @@ class NeuralNetwork:
         self.neurons_input_layer = self.n_features
         self.neurons_output_layer = np.unique(y[:]).shape[0]
 
-        self.theta1 = np.random.random((self.n_features + 1, self.neurons_hidden_layer))
-        self.theta2 = np.random.random((self.neurons_hidden_layer + 1, self.neurons_output_layer))
+        self.theta1 = np.random.uniform(1e-10, 1e-20, 
+                                        size=(self.n_features + 1, self.neurons_hidden_layer))
+        self.theta2 = np.random.uniform(1e-10, 1e-20, 
+                                        size=(self.neurons_hidden_layer + 1, self.neurons_output_layer))
 
         self.costs = []
 
@@ -45,29 +47,29 @@ class NeuralNetwork:
         n_samples_test = X.shape[0]
 
         X = np.hstack((np.ones((n_samples_test, 1)), X))
-        h1 = self._sigmoid(X @ self.theta1)
+        activation_l1 = self._sigmoid(X @ self.theta1)
 
-        h1 = np.hstack((np.ones((n_samples_test, 1)), h1))
-        h2 = self._sigmoid(h1 @ self.theta2)
+        activation_l1 = np.hstack((np.ones((n_samples_test, 1)), activation_l1))
+        activation_l2 = self._sigmoid(activation_l1 @ self.theta2)
 
-        return np.argmax(h2, axis=1)
+        return np.argmax(activation_l2, axis=1)
         
     def _cost(self):
         cost = 0
         for i in range(self.n_samples):
-            a1 = self.X[i, :]
+            activation_l0 = self.X[i, :]
 
-            a1 = np.hstack((1, a1))
-            a2 = self._sigmoid(a1 @ self.theta1)
+            activation_l0 = np.hstack((1, activation_l0))
+            activation_l1 = self._sigmoid(activation_l0 @ self.theta1)
             
-            a2 = np.hstack((1, a2))
-            a3 = self._sigmoid(a2 @ self.theta2)
-            h = a3
+            activation_l1 = np.hstack((1, activation_l1))
+            activation_l2 = self._sigmoid(activation_l1 @ self.theta2)
+            y_pred = activation_l2
             
-            yi = np.zeros(self.neurons_output_layer)
-            yi[self.y[i]] = 1
+            y_true = np.zeros(self.neurons_output_layer)
+            y_true[self.y[i]] = 1
 
-            cost += -yi @ np.log(h) - (1 - yi) @ np.log(1 - h)
+            cost += -y_true @ np.log(y_pred) - (1 - y_true) @ np.log(1 - y_pred)
         cost /= self.n_samples
 
         cost += ((self.lambd / (2 * self.n_samples)) * 
@@ -86,36 +88,36 @@ class NeuralNetwork:
         Delta1 = 0
         Delta2 = 0
         for i in range(self.n_samples):
-            a1 = self.X[i, :]
+            activation_l0 = self.X[i, :]
 
             # Feedforward pass
-            a1 = np.hstack((1, a1))
-            z2 = a1 @ self.theta1
-            a2 = self._sigmoid(z2)
+            activation_l0 = np.hstack((1, activation_l0))
+            input_l1 = activation_l0 @ self.theta1
+            activation_l1 = self._sigmoid(input_l1)
             
-            a2 = np.hstack((1, a2))
-            z3 = a2 @ self.theta2
-            a3 = self._sigmoid(z3)
+            activation_l1 = np.hstack((1, activation_l1))
+            input_l2 = activation_l1 @ self.theta2
+            activation_l2 = self._sigmoid(input_l2)
 
-            h = a3
+            y_pred = activation_l2
 
-            yi = np.zeros(self.neurons_output_layer)
-            yi[self.y[i]] = 1
+            y_true = np.zeros(self.neurons_output_layer)
+            y_true[self.y[i]] = 1
 
             # Backward pass
-            delta3 = (h - yi)
-            
-            delta2 = self.theta2 @ delta3 * self._sigmoid_gradient(np.hstack((1, z2)))
+            delta3 = (y_pred - y_true)
+
+            delta2 = self.theta2 @ delta3 * self._sigmoid_gradient(np.hstack((1, input_l1)))
             delta2 = delta2[1:]
 
-            Delta2 += delta3 * a2[np.newaxis].T
-            Delta1 += delta2 * a1[np.newaxis].T
+            Delta2 += delta3 * activation_l1[np.newaxis].T
+            Delta1 += delta2 * activation_l0[np.newaxis].T
 
-            Theta1_grad = (1 / self.n_samples) * Delta1
-            Theta2_grad = (1 / self.n_samples) * Delta2
+        Theta1_grad = (1 / self.n_samples) * Delta1
+        Theta2_grad = (1 / self.n_samples) * Delta2
 
-            Theta1_grad[:, 1:] += (self.lambd / self.n_samples) * self.theta1[:, 1:]
-            Theta2_grad[:, 1:] += (self.lambd / self.n_samples) * self.theta2[:, 1:]
+        Theta1_grad[:, 1:] += (self.lambd / self.n_samples) * self.theta1[:, 1:]
+        Theta2_grad[:, 1:] += (self.lambd / self.n_samples) * self.theta2[:, 1:]
 
         return Theta1_grad, Theta2_grad
     
