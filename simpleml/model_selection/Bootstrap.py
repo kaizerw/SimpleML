@@ -9,7 +9,7 @@ def accuracy(y_true, y_pred):
     return (tp + tn) / n 
 
 
-def shuffle_split(model, metric, X, y, n_folds=5, repetitions=5, train_size=0.7):
+def bootstrap(model, metric, X, y, n_folds=5, repetitions=5, train_size=0.7):
     size_train = int(y.shape[0] * train_size)
     idx = list(range(y.shape[0]))
 
@@ -48,5 +48,5 @@ if __name__ == '__main__':
     model = LogisticRegression()
     metric = accuracy
 
-    result = shuffle_split(model, metric, X, y)
+    result = bootstrap(model, metric, X, y)
     print(f'Result: mean={np.mean(result)}, std={np.std(result)}')
