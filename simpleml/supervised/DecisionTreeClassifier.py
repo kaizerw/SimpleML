@@ -1,6 +1,4 @@
 import numpy as np
-from sklearn.datasets import make_classification
-import matplotlib.pyplot as plt
 
 
 class DecisionTreeClassifier:
@@ -211,19 +209,3 @@ class DecisionTreeClassifier:
                 ginis_feature[value] += prob_value * self._gini(feature_samples_idx)
         
         return gini_all - min(ginis_feature.values())
-
-    
-if __name__ == '__main__':
-    X, y = make_classification(n_samples=500, n_features=10, n_informative=10, 
-                               n_redundant=0, n_repeated=0, n_classes=5)
-
-    # By now, only works with categorical features
-    # TODO: Generalize to numeric and mixed features
-    X = abs(X.astype(int))
-
-    model = DecisionTreeClassifier()
-    model.fit(X, y)
-
-    n_samples_test = y.shape[0]
-    y_pred = model.predict(X)
-    print('Accuracy:', (sum(y_pred == y) / n_samples_test))

@@ -2,7 +2,7 @@ import numpy as np
 from random import choices
 
 
-def train_test_split(X, y, train_size=0.7, shuffle=True):
+def holdout(X, y, train_size=0.7, shuffle=True):
     if shuffle:
         idx = list(range(y.shape[0]))
         np.random.shuffle(idx)
@@ -18,7 +18,7 @@ def train_test_split(X, y, train_size=0.7, shuffle=True):
     return X[train_idx, :], X[test_idx, :], y[train_idx], y[test_idx]
 
 
-def stratified_k_fold(model, metric, X, y, n_folds=5, repetitions=5, shuffle=True):
+def stratified_k_fold(model, metric, X, y, n_folds=5, repetitions=1, shuffle=True):
     classes = np.unique(y)
 
     evaluations = []
@@ -49,6 +49,7 @@ def stratified_k_fold(model, metric, X, y, n_folds=5, repetitions=5, shuffle=Tru
             y_test = y[idx_test]
 
             model.fit(X_train, y_train)
+            X_test = np.hstack((np.ones((len(idx_test), 1)), X_test))
             y_pred = model.predict(X_test)
             y_true = y_test
             evaluation = metric(y_true, y_pred)
@@ -80,6 +81,7 @@ def leave_one_out(model, metric, X, y, shuffle=True):
         y_test = y[idx_test]
 
         model.fit(X_train, y_train)
+        X_test = np.hstack((np.ones((len(idx_test), 1)), X_test))
         y_pred = model.predict(X_test)
         y_true = y_test
         evaluation = metric(y_true, y_pred)
@@ -89,7 +91,7 @@ def leave_one_out(model, metric, X, y, shuffle=True):
     return evaluations
 
 
-def bootstrap(model, metric, X, y, n_folds=5, repetitions=5, train_size=0.7):
+def bootstrap(model, metric, X, y, n_folds=5, repetitions=1, train_size=0.7):
     size_train = int(y.shape[0] * train_size)
     idx = list(range(y.shape[0]))
 
@@ -102,7 +104,7 @@ def bootstrap(model, metric, X, y, n_folds=5, repetitions=5, train_size=0.7):
             y = y[idx]
 
             idx_train = choices(idx, k=size_train)
-            idx_test = (set(idx) - set(idx_train))
+            idx_test = list(set(idx) - set(idx_train))
 
             X_train = X[idx_train, :]
             y_train = y[idx_train]
@@ -110,6 +112,7 @@ def bootstrap(model, metric, X, y, n_folds=5, repetitions=5, train_size=0.7):
             y_test = y[idx_test]
 
             model.fit(X_train, y_train)
+            X_test = np.hstack((np.ones((len(idx_test), 1)), X_test))
             y_pred = model.predict(X_test)
             y_true = y_test
             evaluation = metric(y_true, y_pred)

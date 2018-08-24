@@ -1,6 +1,4 @@
 import numpy as np
-from sklearn.datasets import make_classification
-import matplotlib.pyplot as plt
 
 
 class LogisticRegression:
@@ -81,23 +79,3 @@ class LogisticRegression:
         cost = (1 / self.n_samples) * sum(left + right)
         cost += (self.lambd / (2 * self.n_samples)) * sum(theta[1:] ** 2)
         return cost
-
-
-if __name__ == '__main__':
-    X, y = make_classification(n_samples=500, n_features=10, n_informative=10, 
-                               n_redundant=0, n_repeated=0, n_classes=5)
-
-    mu = X.mean(axis=0)
-    sigma = X.std(axis=0)
-    X = (X - mu) / sigma
-
-    model = LogisticRegression()
-    model.fit(X, y)
-    
-    # plt.plot(model.costs)
-    # plt.title('Costs')
-    # plt.show()
-
-    n_samples_test = X.shape[0]
-    X = np.hstack((np.ones((n_samples_test, 1)), X))
-    print('Accuracy:', sum(model.predict(X) == y) / n_samples_test)

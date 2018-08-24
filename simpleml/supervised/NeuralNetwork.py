@@ -1,6 +1,4 @@
 import numpy as np
-from sklearn.datasets import make_classification
-import matplotlib.pyplot as plt
 
 
 class NeuralNetwork:
@@ -120,28 +118,3 @@ class NeuralNetwork:
         Theta2_grad[:, 1:] += (self.lambd / self.n_samples) * self.theta2[:, 1:]
 
         return Theta1_grad, Theta2_grad
-    
-
-if __name__ == '__main__':
-    X, y = make_classification(n_samples=500, n_features=10, n_informative=10, 
-                               n_redundant=0, n_repeated=0, n_classes=2)
-
-    mu = np.mean(X, axis=0)
-    sigma = np.mean(X, axis=0)
-    X = (X - mu) / sigma
-
-    model = NeuralNetwork()
-    model.fit(X, y)
-
-    n_samples_test = X.shape[0]
-    y_pred = model.predict(X)
-    print('Accuracy:', (sum(y_pred == y) / n_samples_test))
-
-
-    from sklearn.neural_network import MLPClassifier
-    model = MLPClassifier(hidden_layer_sizes=(25,), solver='sgd', learning_rate='constant', 
-                          activation='logistic', learning_rate_init=1e-3, max_iter=int(1e3), alpha=0.0)
-    model.fit(X, y)
-    n_samples_test = X.shape[0]
-    y_pred = model.predict(X)
-    print('Accuracy:', (sum(y_pred == y) / n_samples_test))    

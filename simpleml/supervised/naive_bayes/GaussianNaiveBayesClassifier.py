@@ -1,6 +1,4 @@
 import numpy as np
-from sklearn.datasets import make_classification
-import matplotlib.pyplot as plt
 
 
 class GaussianNaiveBayesClassifier:
@@ -67,24 +65,3 @@ class GaussianNaiveBayesClassifier:
 
     def _gaussian(self, x, mu, sigma):
         return (1 / np.sqrt(2 * np.pi * sigma ** 2)) * np.exp(-((x - mu) ** 2 / (2 * sigma ** 2)))
-
-
-if __name__ == '__main__':
-    X, y = make_classification(n_samples=500, n_features=10, n_informative=10, 
-                               n_redundant=0, n_repeated=0, n_classes=5)
-
-    mu = X.mean(axis=0)
-    sigma = X.std(axis=0)
-    X = (X - mu) / sigma
-
-    # Create artificial categorical feature
-    X[:, 0] *= np.random.randint(10, size=X.shape[0])
-    X[:, 0] = abs(X[:, 0].astype(np.int64))
-
-    model = GaussianNaiveBayesClassifier()
-    model.fit(X, y)
-
-    n_samples_test = X.shape[0]
-    y_pred = model.predict(X)
-    print('Accuracy:', (sum(y_pred == y) / n_samples_test))
-    

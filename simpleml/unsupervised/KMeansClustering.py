@@ -1,6 +1,4 @@
 import numpy as np
-from sklearn.datasets import make_blobs
-import matplotlib.pyplot as plt
 
 
 class KMeansClustering:
@@ -41,24 +39,3 @@ class KMeansClustering:
         for i in range(n_samples_test):
             y_pred[i] = np.argmin([self._metric(X[i, :], self.centroids[j, :]) for j in range(self.k)])
         return y_pred
-
-
-if __name__ == '__main__':
-    X, y = make_blobs(n_samples=500, n_features=2, centers=5)
-
-    mu = np.mean(X, axis=0)
-    sigma = np.mean(X, axis=0)
-    X = (X - mu) / sigma
-
-    model = KMeansClustering(k=5)
-    model.fit(X)
-    y = model.predict(X)
-
-    plt.title('KMeans clustering with k=5')
-    plt.scatter(X[y==0, 0], X[y==0, 1], c='r', alpha=0.5)
-    plt.scatter(X[y==1, 0], X[y==1, 1], c='g', alpha=0.5)
-    plt.scatter(X[y==2, 0], X[y==2, 1], c='b', alpha=0.5)
-    plt.scatter(X[y==3, 0], X[y==3, 1], c='y', alpha=0.5)
-    plt.scatter(X[y==4, 0], X[y==4, 1], c='m', alpha=0.5)
-    plt.scatter(model.centroids[:, 0], model.centroids[:, 1], marker='o', s=120, c='k')
-    plt.show()

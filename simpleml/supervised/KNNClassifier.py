@@ -1,7 +1,5 @@
 import numpy as np
 from scipy.stats import mode
-from sklearn.datasets import make_blobs
-import matplotlib.pyplot as plt
 
 
 class KNNClassifier:
@@ -31,17 +29,3 @@ class KNNClassifier:
             y_pred[i] = mode(preds)[0]
 
         return y_pred
-
-
-if __name__ == '__main__':
-    X, y = make_blobs(n_samples=500, n_features=10, centers=5)
-
-    mu = np.mean(X, axis=0)
-    sigma = np.mean(X, axis=0)
-    X = (X - mu) / sigma
-
-    n_samples_test = X.shape[0]
-    for k in [1, 3, 5, 7, 9]:
-        model = KNNClassifier(k=k)
-        y_pred = model.predict(X, y, X)
-        print(f'Accuracy with k={k}:', sum(y_pred == y) / n_samples_test)

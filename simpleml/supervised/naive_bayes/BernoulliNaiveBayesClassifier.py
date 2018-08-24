@@ -1,6 +1,4 @@
 import numpy as np
-from sklearn.datasets import make_classification
-import matplotlib.pyplot as plt
 
 
 class BernoulliNaiveBayesClassifier:
@@ -54,19 +52,3 @@ class BernoulliNaiveBayesClassifier:
             y_pred[i] = np.argmax(posteriori_probs)
 
         return y_pred
-    
-
-if __name__ == '__main__':
-    X, y = make_classification(n_samples=500, n_features=10, n_informative=10, 
-                               n_redundant=0, n_repeated=0, n_classes=5)
-
-    maxX = X.max(axis=0)
-    minX = X.min(axis=0)
-    X = (X - minX) / (maxX - minX)
-
-    model = BernoulliNaiveBayesClassifier(binarize=0.5)
-    model.fit(X, y)
-
-    n_samples_test = X.shape[0]
-    y_pred = model.predict(X)
-    print('Accuracy:', (sum(y_pred == y) / n_samples_test))

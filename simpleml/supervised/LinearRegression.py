@@ -1,6 +1,4 @@
 import numpy as np
-from sklearn.datasets import make_regression
-import matplotlib.pyplot as plt
 
 
 class LinearRegression:
@@ -55,20 +53,3 @@ class LinearRegression:
         cost = (1 / (2 * self.n_samples)) * sum(error ** 2)
         cost += ((self.lambd / (2 * self.n_samples)) * sum(self.theta[1:]))
         return cost
-
-if __name__ == '__main__':
-    X, y = make_regression(n_samples=500, n_features=10, 
-                           n_informative=10, n_targets=1) 
-
-    mu = X.mean(axis=0)
-    sigma = X.std(axis=0)
-    X = (X - mu) / sigma
-
-    model = LinearRegression()
-    model.fit(X, y)
-    
-    # plt.plot(model.costs)
-    # plt.title('Costs')
-    # plt.show()
-
-    print('R2:', model.R2())
