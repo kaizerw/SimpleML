@@ -39,12 +39,12 @@ class LogisticRegression:
         return self
 
     def _activation(self, X):
+        n_samples_test = X.shape[0]
+        if X.shape[1] != self.theta.shape[0]:
+            X = np.hstack((np.ones((n_samples_test, 1)), X))
         return self._sigmoid(self.theta @ X.T)
 
     def predict(self, X):
-        n_samples_test = X.shape[0]
-        if not np.all(X[:, 0] == np.ones(n_samples_test)):
-            X = np.hstack((np.ones((n_samples_test, 1)), X))
         return np.where(self._activation(X) >= self.threshold, 1, 0)
 
     def _sigmoid(self, z):

@@ -32,7 +32,7 @@ class LinearRegression:
 
     def predict(self, X):
         n_samples_test = X.shape[0]
-        if not np.all(X[:, 0] == np.ones(n_samples_test)):
+        if X.shape[1] != self.theta.shape[0]:
             X = np.hstack((np.ones((n_samples_test, 1)), X))
         return X @ self.theta
 

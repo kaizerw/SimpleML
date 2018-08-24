@@ -4,6 +4,7 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.tree import DecisionTreeClassifier as SKDecisionTreeClassifier
 from sklearn.neural_network import MLPClassifier
 from sklearn.naive_bayes import GaussianNB, BernoulliNB, MultinomialNB
+from sklearn.multiclass import OneVsRestClassifier as SKOneVsRestClassifier
 from sklearn.datasets import make_classification, make_blobs, make_regression
 import sklearn.metrics as metrics
 import sklearn.preprocessing as preprocessing
@@ -168,7 +169,7 @@ def test_multinomial_naive_bayes_classifier():
 
 
 def test_kmeans_clustering():
-    X, _ = make_blobs(n_samples=500, n_features=5, centers=2)
+    X, _ = make_blobs(n_samples=500, n_features=5, centers=5)
 
     X = StandardScaler().fit(X).transform(X)
 
@@ -299,23 +300,41 @@ def test_bootstrap():
     print(f'Result: mean={np.mean(result)}, std={np.std(result)}')
 
 
+def test_one_vs_rest_classifier():
+    X, y = make_classification(n_samples=500, n_features=10, n_informative=10, 
+                               n_redundant=0, n_repeated=0, n_classes=5)
+
+    X = StandardScaler().fit(X).transform(X)
+
+    metric = f1_score
+
+    model = OneVsRestClassifier(LogisticRegression())
+    result = stratified_k_fold(model, metric, X, y)
+    print(f'simpleml: mean={np.mean(result)}, std={np.std(result)}')
+
+    model = SKOneVsRestClassifier(SKLogisticRegression())
+    result = stratified_k_fold(model, metric, X, y)
+    print(f'sklearn: mean={np.mean(result)}, std={np.std(result)}')
+
+
 if __name__ == '__main__':
-    tests = [test_linear_regression, 
-             test_logistic_regression, 
-             test_KNN_classifier, 
-             test_decision_tree_classifier, 
-             test_neural_network, 
-             test_gaussian_naive_bayes_classifier, 
-             test_bernoulli_naive_bayes_classifier, 
-             test_multinomial_naive_bayes_classifier, 
-             test_kmeans_clustering,
-             test_principal_component_analysis, 
-             test_metrics, 
-             test_preprocessing, 
-             test_holdout,
-             test_stratified_k_fold, 
-             test_leave_one_out, 
-             test_bootstrap]
+    tests = [#test_linear_regression, 
+             #test_logistic_regression, 
+             #test_KNN_classifier, 
+             #test_decision_tree_classifier, 
+             #test_neural_network, 
+             #test_gaussian_naive_bayes_classifier, 
+             #test_bernoulli_naive_bayes_classifier, 
+             #test_multinomial_naive_bayes_classifier, 
+             #test_kmeans_clustering,
+             #test_principal_component_analysis, 
+             #test_metrics, 
+             #test_preprocessing, 
+             #test_holdout,
+             #test_stratified_k_fold, 
+             #test_leave_one_out, 
+             #test_bootstrap, 
+             test_one_vs_rest_classifier]
 
     for test in tests:
         name = test.__name__.replace('test_', '')
