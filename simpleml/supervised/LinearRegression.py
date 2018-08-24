@@ -31,16 +31,10 @@ class LinearRegression:
         return self
 
     def predict(self, X):
+        n_samples_test = X.shape[0]
+        if not np.all(X[:, 0] == np.ones(n_samples_test)):
+            X = np.hstack((np.ones((n_samples_test, 1)), X))
         return X @ self.theta
-
-    def R2(self):
-        y_pred = self.predict(self.X)
-        y_mean = np.mean(self.y)
-
-        ss_tot = sum((self.y - y_mean) ** 2)
-        ss_res = sum((self.y - y_pred) ** 2)
-
-        return 1 - (ss_res / ss_tot)
 
     def _gradient(self, y_pred):
         error = y_pred - self.y

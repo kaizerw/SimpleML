@@ -3,7 +3,7 @@ import numpy as np
 
 class NeuralNetwork:
 
-    def __init__(self, alpha=1e-3, max_iter=1e3, tol=1e-3, neurons_hidden_layer=25, lambd=0):
+    def __init__(self, alpha=1e-3, max_iter=1e2, tol=1e-3, neurons_hidden_layer=25, lambd=0):
         self.alpha = alpha # Learning rate
         self.max_iter = max_iter # Max iterations
         self.tol = tol # Error tolerance
