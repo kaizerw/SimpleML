@@ -207,26 +207,32 @@ def test_metrics():
     
     X = StandardScaler().fit(X).transform(X)
 
-    model = LogisticRegression()
+    model = SKLogisticRegression()
     model.fit(X, y)
-    X = np.hstack((np.ones((X.shape[0], 1)), X))
     y_pred = model.predict(X)
     y_true = y
 
     print('Confusion Matrix:', confusion_matrix(y_true, y_pred) == metrics.confusion_matrix(y_true, y_pred), sep='\n')
     print('Delta Accuracy:', accuracy(y_true, y_pred) - metrics.accuracy_score(y_true, y_pred))
-    print('Delta Error:', error(y_true, y_pred) - (1 - metrics.accuracy_score(y_true, y_pred)))
-    print('Delta Recall:', recall(y_true, y_true) - metrics.recall_score(y_true, y_pred))
-    print('Delta Precision:', precision(y_true, y_pred) - metrics.precision_score(y_true, y_pred))
-    print('Delta F1-score:', f1_score(y_true, y_pred) - metrics.f1_score(y_true, y_pred))
+    
+    print('Delta Micro Recall:', recall(y_true, y_true, kind='micro') - metrics.recall_score(y_true, y_pred, average='micro'))
+    print('Delta Micro Precision:', precision(y_true, y_pred, kind='micro') - metrics.precision_score(y_true, y_pred, average='micro'))
+    print('Delta Micro F1-score:', f1_score(y_true, y_pred, kind='micro') - metrics.f1_score(y_true, y_pred, average='micro'))
+
+    print('Delta Macro Recall:', recall(y_true, y_true, kind='macro') - metrics.recall_score(y_true, y_pred, average='macro'))
+    print('Delta Macro Precision:', precision(y_true, y_pred, kind='macro') - metrics.precision_score(y_true, y_pred, average='macro'))
+    print('Delta Macro F1-score:', f1_score(y_true, y_pred, kind='macro') - metrics.f1_score(y_true, y_pred, average='macro'))
+
+    print('Delta All Recall:', recall(y_true, y_true, kind='all') - metrics.recall_score(y_true, y_pred, average=None))
+    print('Delta All Precision:', precision(y_true, y_pred, kind='all') - metrics.precision_score(y_true, y_pred, average=None))
+    print('Delta All F1-score:', f1_score(y_true, y_pred, kind='all') - metrics.f1_score(y_true, y_pred, average=None))
 
     print('*' * 80)
 
     X, y = make_regression(n_samples=500, n_features=5, 
                            n_informative=5, n_targets=1) 
-    model = LinearRegression()
+    model = SKLinearRegression()
     model.fit(X, y)
-    X = np.hstack((np.ones((X.shape[0], 1)), X))
     y_pred = model.predict(X)
     y_true = y
 
@@ -318,22 +324,22 @@ def test_one_vs_rest_classifier():
 
 
 if __name__ == '__main__':
-    tests = [#test_linear_regression, 
-             #test_logistic_regression, 
-             #test_KNN_classifier, 
-             #test_decision_tree_classifier, 
-             #test_neural_network, 
-             #test_gaussian_naive_bayes_classifier, 
-             #test_bernoulli_naive_bayes_classifier, 
-             #test_multinomial_naive_bayes_classifier, 
-             #test_kmeans_clustering,
-             #test_principal_component_analysis, 
-             #test_metrics, 
-             #test_preprocessing, 
-             #test_holdout,
-             #test_stratified_k_fold, 
-             #test_leave_one_out, 
-             #test_bootstrap, 
+    tests = [test_linear_regression, 
+             test_logistic_regression, 
+             test_KNN_classifier, 
+             test_decision_tree_classifier, 
+             test_neural_network, 
+             test_gaussian_naive_bayes_classifier, 
+             test_bernoulli_naive_bayes_classifier, 
+             test_multinomial_naive_bayes_classifier, 
+             test_kmeans_clustering,
+             test_principal_component_analysis, 
+             test_metrics, 
+             test_preprocessing, 
+             test_holdout,
+             test_stratified_k_fold, 
+             test_leave_one_out, 
+             test_bootstrap, 
              test_one_vs_rest_classifier]
 
     for test in tests:
