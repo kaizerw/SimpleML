@@ -3,7 +3,7 @@ import numpy as np
 
 class LogisticRegression:
 
-    def __init__(self, alpha=1e-3, max_iter=1e4, tol=1e-3, lambd=0, threshold=0.5):
+    def __init__(self, alpha=1e-3, max_iter=1e4, tol=1e-4, lambd=0, threshold=0.5):
         self.alpha = alpha # Learning rate
         self.max_iter = max_iter # Max iterations
         self.tol = tol # Error tolerance

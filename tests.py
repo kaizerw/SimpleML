@@ -1,6 +1,13 @@
+from sklearn.linear_model import LinearRegression as SKLinearRegression
+from sklearn.linear_model import LogisticRegression as SKLogisticRegression
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.tree import DecisionTreeClassifier as SKDecisionTreeClassifier
 from sklearn.neural_network import MLPClassifier
+from sklearn.naive_bayes import GaussianNB, BernoulliNB, MultinomialNB
 from sklearn.datasets import make_classification, make_blobs, make_regression
 import sklearn.metrics as metrics
+import sklearn.preprocessing as preprocessing
+import sklearn.model_selection as model_selection
 from simpleml.supervised import *
 from simpleml.supervised.naive_bayes import *
 from simpleml.unsupervised import *
@@ -16,12 +23,15 @@ def test_linear_regression():
 
     X = StandardScaler().fit(X).transform(X)
 
-    model = LinearRegression()
-    model.fit(X, y)
+    metric = mean_squared_error
 
-    y_pred = model.predict(X)
-    y_true = y
-    print('R2:', r2_score(y_true, y_pred))
+    model = LinearRegression()
+    result = bootstrap(model, metric, X, y)
+    print(f'simpleml: mean={np.mean(result)}, std={np.std(result)}')
+
+    model = SKLinearRegression()
+    result = bootstrap(model, metric, X, y)
+    print(f'sklearn: mean={np.mean(result)}, std={np.std(result)}')
 
 
 def test_logistic_regression():
@@ -30,25 +40,34 @@ def test_logistic_regression():
 
     X = StandardScaler().fit(X).transform(X)
 
-    model = LogisticRegression()
-    model.fit(X, y)
+    metric = f1_score
 
-    y_pred = model.predict(X)
-    y_true = y
-    print('Accuracy:', accuracy(y_true, y_pred))
+    model = LogisticRegression()
+    result = stratified_k_fold(model, metric, X, y)
+    print(f'simpleml: mean={np.mean(result)}, std={np.std(result)}')
+
+    model = SKLogisticRegression()
+    result = stratified_k_fold(model, metric, X, y)
+    print(f'sklearn: mean={np.mean(result)}, std={np.std(result)}')
 
 
 def test_KNN_classifier():
-    X, y = make_blobs(n_samples=500, n_features=5, centers=2)
+    X, y = make_blobs(n_samples=500, n_features=5, centers=2, cluster_std=5)
 
     X = StandardScaler().fit(X).transform(X)
 
-    for k in [3, 5, 7]:
-        model = KNNClassifier(k=k)
+    metric = f1_score
 
-        y_pred = model.predict(X, y, X)
-        y_true = y
-        print(f'Accuracy with k={k}:', accuracy(y_true, y_pred))
+    for k in [3, 5, 7]:
+        print(f'k={k}:')
+
+        model = KNNClassifier(k=k)
+        result = stratified_k_fold(model, metric, X, y)
+        print(f'simpleml: mean={np.mean(result)}, std={np.std(result)}')
+
+        model = KNeighborsClassifier(n_neighbors=k)
+        result = stratified_k_fold(model, metric, X, y)
+        print(f'sklearn: mean={np.mean(result)}, std={np.std(result)}')
 
 
 def test_decision_tree_classifier():
@@ -59,49 +78,38 @@ def test_decision_tree_classifier():
     # TODO: Generalize to numeric and mixed features
     X = abs(X.astype(int))
 
+    metric = f1_score
+
     model = DecisionTreeClassifier()
     model.fit(X, y)
-
     y_pred = model.predict(X)
     y_true = y
-    print('Accuracy:', accuracy(y_true, y_pred))
+    print(f'simpleml: {metric(y_true, y_pred)}')
+
+    model = SKDecisionTreeClassifier()
+    model.fit(X, y)
+    y_pred = model.predict(X)
+    y_true = y
+    print(f'sklearn: {metric(y_true, y_pred)}')
 
 
 def test_neural_network():
-    X, y = make_classification(n_samples=500, n_features=10, n_informative=10, 
+    X, y = make_classification(n_samples=500, n_features=5, n_informative=5, 
                                n_redundant=0, n_repeated=0, n_classes=2)
 
     X = StandardScaler().fit(X).transform(X)
 
+    metric = f1_score
+
     model = NeuralNetwork()
-    model.fit(X, y)
-
-    y_pred = model.predict(X)
-    y_true = y
-    print('Accuracy:', accuracy(y_true, y_pred))
-
-    model = MLPClassifier(hidden_layer_sizes=(25,), solver='sgd', learning_rate='constant', 
-                          activation='logistic', learning_rate_init=1e-3, max_iter=int(1e3), alpha=0.0)
-    model.fit(X, y)
+    result = stratified_k_fold(model, metric, X, y)
+    print(f'simpleml: mean={np.mean(result)}, std={np.std(result)}')
     
-    y_pred = model.predict(X)
-    y_true = y
-    print('Accuracy:', accuracy(y_true, y_pred))
-
-
-def test_naive_bayes_classifier():
-    X, y = make_classification(n_samples=500, n_features=5, n_informative=5, 
-                               n_redundant=0, n_repeated=0, n_classes=2)
-
-    # This classifier only works with categorical features
-    X = abs(X.astype(int))
-
-    model = NaiveBayesClassifier()
-    model.fit(X, y)
-    
-    y_pred = model.predict(X)
-    y_true = y
-    print('Accuracy:', accuracy(y_true, y_pred))
+    model = MLPClassifier(hidden_layer_sizes=(25,), solver='sgd', 
+                          learning_rate='constant', activation='logistic', 
+                          learning_rate_init=1e-3, max_iter=int(1e3), alpha=0.0)
+    result = stratified_k_fold(model, metric, X, y)
+    print(f'sklearn: mean={np.mean(result)}, std={np.std(result)}')
 
 
 def test_gaussian_naive_bayes_classifier():
@@ -110,16 +118,19 @@ def test_gaussian_naive_bayes_classifier():
 
     X = StandardScaler().fit(X).transform(X)
 
-    # Create artificial categorical feature
+    # Create one artificial categorical feature
     X[:, 0] *= np.random.randint(10, size=X.shape[0])
     X[:, 0] = abs(X[:, 0].astype(np.int64))
 
-    model = GaussianNaiveBayesClassifier()
-    model.fit(X, y)
+    metric = f1_score
 
-    y_pred = model.predict(X)
-    y_true = y
-    print('Accuracy:', accuracy(y_true, y_pred))
+    model = GaussianNaiveBayesClassifier()
+    result = stratified_k_fold(model, metric, X, y)
+    print(f'simpleml: mean={np.mean(result)}, std={np.std(result)}')
+
+    model = GaussianNB()
+    result = stratified_k_fold(model, metric, X, y)
+    print(f'sklearn: mean={np.mean(result)}, std={np.std(result)}')
 
 
 def test_bernoulli_naive_bayes_classifier():
@@ -128,12 +139,15 @@ def test_bernoulli_naive_bayes_classifier():
 
     X = MinMaxScaler().fit(X).transform(X)
 
-    model = BernoulliNaiveBayesClassifier(binarize=0.5)
-    model.fit(X, y)
+    metric = f1_score
 
-    y_pred = model.predict(X)
-    y_true = y
-    print('Accuracy:', accuracy(y_true, y_pred))
+    model = BernoulliNaiveBayesClassifier()
+    result = stratified_k_fold(model, metric, X, y)
+    print(f'simpleml: mean={np.mean(result)}, std={np.std(result)}')
+
+    model = BernoulliNB()
+    result = stratified_k_fold(model, metric, X, y)
+    print(f'sklearn: mean={np.mean(result)}, std={np.std(result)}')
 
 
 def test_multinomial_naive_bayes_classifier():
@@ -142,12 +156,15 @@ def test_multinomial_naive_bayes_classifier():
     
     X = abs(X.astype(int))
 
-    model = MultinomialNaiveBayesClassifier()
-    model.fit(X, y)
+    metric = f1_score
 
-    y_pred = model.predict(X)
-    y_true = y
-    print('Accuracy:', accuracy(y_true, y_pred))
+    model = MultinomialNaiveBayesClassifier()
+    result = stratified_k_fold(model, metric, X, y)
+    print(f'simpleml: mean={np.mean(result)}, std={np.std(result)}')
+
+    model = MultinomialNB()
+    result = stratified_k_fold(model, metric, X, y)
+    print(f'sklearn: mean={np.mean(result)}, std={np.std(result)}')
 
 
 def test_kmeans_clustering():
@@ -196,11 +213,11 @@ def test_metrics():
     y_true = y
 
     print('Confusion Matrix:', confusion_matrix(y_true, y_pred) == metrics.confusion_matrix(y_true, y_pred), sep='\n')
-    print('Accuracy:', accuracy(y_true, y_pred) - metrics.accuracy_score(y_true, y_pred))
-    print('Error:', error(y_true, y_pred) - (1 - metrics.accuracy_score(y_true, y_pred)))
-    print('Recall:', recall(y_true, y_true) - metrics.recall_score(y_true, y_pred))
-    print('Precision:', precision(y_true, y_pred) - metrics.precision_score(y_true, y_pred))
-    print('F1-score:', f1_score(y_true, y_pred) - metrics.f1_score(y_true, y_pred))
+    print('Delta Accuracy:', accuracy(y_true, y_pred) - metrics.accuracy_score(y_true, y_pred))
+    print('Delta Error:', error(y_true, y_pred) - (1 - metrics.accuracy_score(y_true, y_pred)))
+    print('Delta Recall:', recall(y_true, y_true) - metrics.recall_score(y_true, y_pred))
+    print('Delta Precision:', precision(y_true, y_pred) - metrics.precision_score(y_true, y_pred))
+    print('Delta F1-score:', f1_score(y_true, y_pred) - metrics.f1_score(y_true, y_pred))
 
     print('*' * 80)
 
@@ -212,9 +229,9 @@ def test_metrics():
     y_pred = model.predict(X)
     y_true = y
 
-    print('mean_absolute_error:', mean_absolute_error(y_true, y_pred) - metrics.mean_absolute_error(y_true, y_pred))
-    print('mean_squared_error:', mean_squared_error(y_true, y_pred) - metrics.mean_squared_error(y_true, y_pred))
-    print('r2_score:', r2_score(y_true, y_pred) - metrics.r2_score(y_true, y_pred))
+    print('Delta mean_absolute_error:', mean_absolute_error(y_true, y_pred) - metrics.mean_absolute_error(y_true, y_pred))
+    print('Delta mean_squared_error:', mean_squared_error(y_true, y_pred) - metrics.mean_squared_error(y_true, y_pred))
+    print('Delta r2_score:', r2_score(y_true, y_pred) - metrics.r2_score(y_true, y_pred))
 
 
 def test_preprocessing():
@@ -223,8 +240,13 @@ def test_preprocessing():
 
     X_min_max = MinMaxScaler().fit(X).transform(X)
     X_standard = StandardScaler().fit(X).transform(X)
-    print('MinMax:', np.min(X_min_max, axis=0), np.max(X_min_max, axis=0))
-    print('Standard:', np.mean(X_standard, axis=0), np.std(X_standard, axis=0))
+    print('simpleml: MinMax:', np.min(X_min_max, axis=0), np.max(X_min_max, axis=0))
+    print('simpleml: Standard:', np.mean(X_standard, axis=0), np.std(X_standard, axis=0))
+
+    X_min_max = preprocessing.MinMaxScaler().fit(X).transform(X)
+    X_standard = preprocessing.StandardScaler().fit(X).transform(X)
+    print('sklearn: MinMax:', np.min(X_min_max, axis=0), np.max(X_min_max, axis=0))
+    print('sklearn: Standard:', np.mean(X_standard, axis=0), np.std(X_standard, axis=0))
 
 
 def test_holdout():
@@ -232,27 +254,35 @@ def test_holdout():
                                n_redundant=0, n_repeated=0, n_classes=2)
 
     X_train, X_test, y_train, y_test = holdout(X, y)
-    print('Train:', np.bincount(y_train))
-    print('Test:', np.bincount(y_test))
+    print('simpleml: Train:', np.bincount(y_train))
+    print('simpleml: Test:', np.bincount(y_test))
+
+    X_train, X_test, y_train, y_test = \
+        model_selection.train_test_split(X, y, train_size=0.7, stratify=y)
+    print('sklearn: Train:', np.bincount(y_train))
+    print('sklearn: Test:', np.bincount(y_test))
 
 
 def test_stratified_k_fold():
     X, y = make_classification(n_samples=100, n_features=5, n_informative=5, 
                                n_redundant=0, n_repeated=0, n_classes=2)
 
-    model = LogisticRegression()
-    metric = accuracy
+    model = SKLogisticRegression()
+    metric = f1_score
 
     result = stratified_k_fold(model, metric, X, y)
-    print(f'Result: mean={np.mean(result)}, std={np.std(result)}')
+    print(f'simpleml: mean={np.mean(result)}, std={np.std(result)}')
+
+    result = model_selection.cross_val_score(model, X, y, scoring='f1')
+    print(f"sklearn: mean={np.mean(result)}, std={np.std(result)}")
 
 
 def test_leave_one_out():
     X, y = make_classification(n_samples=100, n_features=5, n_informative=5, 
                                n_redundant=0, n_repeated=0, n_classes=2)
 
-    model = LogisticRegression()
-    metric = accuracy
+    model = SKLogisticRegression()
+    metric = f1_score
 
     result = leave_one_out(model, metric, X, y)
     print(f'Result: mean={np.mean(result)}, std={np.std(result)}')
@@ -262,8 +292,8 @@ def test_bootstrap():
     X, y = make_classification(n_samples=100, n_features=5, n_informative=5, 
                                n_redundant=0, n_repeated=0, n_classes=2)
 
-    model = LogisticRegression()
-    metric = accuracy
+    model = SKLogisticRegression()
+    metric = f1_score
 
     result = bootstrap(model, metric, X, y)
     print(f'Result: mean={np.mean(result)}, std={np.std(result)}')
@@ -275,11 +305,10 @@ if __name__ == '__main__':
              test_KNN_classifier, 
              test_decision_tree_classifier, 
              test_neural_network, 
-             test_naive_bayes_classifier, 
              test_gaussian_naive_bayes_classifier, 
              test_bernoulli_naive_bayes_classifier, 
              test_multinomial_naive_bayes_classifier, 
-             test_kmeans_clustering, 
+             test_kmeans_clustering,
              test_principal_component_analysis, 
              test_metrics, 
              test_preprocessing, 

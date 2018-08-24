@@ -49,7 +49,6 @@ def stratified_k_fold(model, metric, X, y, n_folds=5, repetitions=1, shuffle=Tru
             y_test = y[idx_test]
 
             model.fit(X_train, y_train)
-            X_test = np.hstack((np.ones((len(idx_test), 1)), X_test))
             y_pred = model.predict(X_test)
             y_true = y_test
             evaluation = metric(y_true, y_pred)
@@ -81,7 +80,6 @@ def leave_one_out(model, metric, X, y, shuffle=True):
         y_test = y[idx_test]
 
         model.fit(X_train, y_train)
-        X_test = np.hstack((np.ones((len(idx_test), 1)), X_test))
         y_pred = model.predict(X_test)
         y_true = y_test
         evaluation = metric(y_true, y_pred)
@@ -112,7 +110,6 @@ def bootstrap(model, metric, X, y, n_folds=5, repetitions=1, train_size=0.7):
             y_test = y[idx_test]
 
             model.fit(X_train, y_train)
-            X_test = np.hstack((np.ones((len(idx_test), 1)), X_test))
             y_pred = model.predict(X_test)
             y_true = y_test
             evaluation = metric(y_true, y_pred)

@@ -85,7 +85,7 @@ class DecisionTreeClassifier:
         node = self._tree
         while i < x.shape[0]:
             if node['is_leave']:
-                y_pred[i]= node['prediction']
+                y_pred[i] = node['prediction']
                 i += 1
                 node = self._tree
             else:
