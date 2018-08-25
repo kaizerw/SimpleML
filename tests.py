@@ -28,7 +28,11 @@ def test_linear_regression():
 
     model = LinearRegression()
     result = bootstrap(model, metric, X, y)
-    print(f'simpleml: mean={np.mean(result)}, std={np.std(result)}')
+    print(f'simpleml BGD: mean={np.mean(result)}, std={np.std(result)}')
+
+    model = LinearRegression(method='BFGS')
+    result = bootstrap(model, metric, X, y)
+    print(f'simpleml BFGS: mean={np.mean(result)}, std={np.std(result)}')
 
     model = SKLinearRegression()
     result = bootstrap(model, metric, X, y)
@@ -45,7 +49,11 @@ def test_logistic_regression():
 
     model = LogisticRegression()
     result = stratified_k_fold(model, metric, X, y)
-    print(f'simpleml: mean={np.mean(result)}, std={np.std(result)}')
+    print(f'simpleml BGD: mean={np.mean(result)}, std={np.std(result)}')
+
+    model = LogisticRegression(method='BFGS')
+    result = stratified_k_fold(model, metric, X, y)
+    print(f'simpleml BFGS: mean={np.mean(result)}, std={np.std(result)}')
 
     model = SKLogisticRegression()
     result = stratified_k_fold(model, metric, X, y)
@@ -104,7 +112,11 @@ def test_neural_network():
 
     model = NeuralNetwork()
     result = stratified_k_fold(model, metric, X, y)
-    print(f'simpleml: mean={np.mean(result)}, std={np.std(result)}')
+    print(f'simpleml BGD: mean={np.mean(result)}, std={np.std(result)}')
+
+    model = NeuralNetwork(method='BFGS')
+    result = stratified_k_fold(model, metric, X, y)
+    print(f'simpleml BFGS: mean={np.mean(result)}, std={np.std(result)}')
     
     model = MLPClassifier(hidden_layer_sizes=(25,), solver='sgd', 
                           learning_rate='constant', activation='logistic', 
@@ -324,23 +336,25 @@ def test_one_vs_rest_classifier():
 
 
 if __name__ == '__main__':
-    tests = [test_linear_regression, 
-             test_logistic_regression, 
-             test_KNN_classifier, 
-             test_decision_tree_classifier, 
+    tests = [
+             #test_linear_regression, 
+             #test_logistic_regression, 
+             #test_KNN_classifier, 
+             #test_decision_tree_classifier, 
              test_neural_network, 
-             test_gaussian_naive_bayes_classifier, 
-             test_bernoulli_naive_bayes_classifier, 
-             test_multinomial_naive_bayes_classifier, 
-             test_kmeans_clustering,
-             test_principal_component_analysis, 
-             test_metrics, 
-             test_preprocessing, 
-             test_holdout,
-             test_stratified_k_fold, 
-             test_leave_one_out, 
-             test_bootstrap, 
-             test_one_vs_rest_classifier]
+             #test_gaussian_naive_bayes_classifier, 
+             #test_bernoulli_naive_bayes_classifier, 
+             #test_multinomial_naive_bayes_classifier, 
+             #test_kmeans_clustering,
+             #test_principal_component_analysis, 
+             #test_metrics, 
+             #test_preprocessing, 
+             #test_holdout,
+             #test_stratified_k_fold, 
+             #test_leave_one_out, 
+             #test_bootstrap, 
+             #test_one_vs_rest_classifier
+            ]
 
     for test in tests:
         name = test.__name__.replace('test_', '')

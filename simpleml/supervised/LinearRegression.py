@@ -1,49 +1,65 @@
 import numpy as np
+from scipy.optimize import minimize
 
 
 class LinearRegression:
 
-    def __init__(self, alpha=1e-3, max_iter=1e4, tol=1e-4, lambd=0):
+    def __init__(self, alpha=1e-3, max_iter=1e4, tol=1e-4, lambd=0, 
+                 method='batch_gradient_descent'):
         self.alpha = alpha # Learning rate
-        self.max_iter = max_iter # Max iterations
+        self.max_iter = int(max_iter) # Max iterations
         self.tol = tol # Error tolerance
         self.lambd = lambd # Regularization constant
+        self.method = method # Method to be used to optimize cost function
 
     def fit(self, X, y):
-        self.n_samples, self.n_features = X.shape
-        self.X = np.hstack((np.ones((self.n_samples, 1)), X))
-        self.y = y
-        self.theta = np.zeros(self.n_features + 1)
+        n_samples, n_features = X.shape
+        X = np.hstack((np.ones((n_samples, 1)), X))
+        self.theta = np.zeros(n_features + 1)
         self.costs = []
 
-        i = 0
-        while True:
-            y_pred = self.predict(self.X)
-            self.theta -= self.alpha * self._gradient(y_pred)
-            cost = self._cost(y_pred)
-            self.costs.append(cost)
+        if self.method == 'batch_gradient_descent':
+            for _ in range(self.max_iter):
+                grad = self._gradient(self.theta, X, y, self.lambd)
+                self.theta -= self.alpha * grad
 
-            if i >= self.max_iter or cost <= self.tol:
-                break
-            
-            i += 1
+                cost = self._cost(self.theta, X, y, self.lambd)
+                self.costs.append(cost)
+
+                if cost <= self.tol:
+                    break
+                    
+        else:
+            options = {'gtol': self.tol, 'maxiter': self.max_iter}
+            args = (X, y, self.lambd)
+            res = minimize(self._cost, self.theta, 
+                           jac=self._gradient, args=args, 
+                           method=self.method, options=options)
+            self.theta = res.x
 
         return self
+
+    def _activation(self, X, theta):
+        return X @ theta
 
     def predict(self, X):
         n_samples_test = X.shape[0]
         if X.shape[1] != self.theta.shape[0]:
             X = np.hstack((np.ones((n_samples_test, 1)), X))
-        return X @ self.theta
+        return self._activation(X, self.theta)
 
-    def _gradient(self, y_pred):
-        error = y_pred - self.y
-        grad = (1 / self.n_samples) * sum((error * self.X.T).T)
-        grad[1:] += ((self.lambd / self.n_samples) * sum(self.theta[1:]))
+    def _gradient(self, theta, X, y_true, lambd):
+        n_samples = X.shape[0]
+        y_pred = self._activation(X, theta)
+        error = y_pred - y_true
+        grad = (1 / n_samples) * sum((error * X.T).T)
+        grad[1:] += ((lambd / n_samples) * sum(theta[1:]))
         return grad
 
-    def _cost(self, y_pred):
-        error = y_pred - self.y
-        cost = (1 / (2 * self.n_samples)) * sum(error ** 2)
-        cost += ((self.lambd / (2 * self.n_samples)) * sum(self.theta[1:]))
+    def _cost(self, theta, X, y_true, lambd):
+        n_samples = X.shape[0]
+        y_pred = self._activation(X, theta)
+        error = y_pred - y_true
+        cost = (1 / (2 * n_samples)) * sum(error ** 2)
+        cost += ((lambd / (2 * n_samples)) * sum(theta[1:]))
         return cost
