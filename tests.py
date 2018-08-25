@@ -1,6 +1,6 @@
 from sklearn.linear_model import LinearRegression as SKLinearRegression
 from sklearn.linear_model import LogisticRegression as SKLogisticRegression
-from sklearn.neighbors import KNeighborsClassifier
+from sklearn.neighbors import KNeighborsClassifier, KNeighborsRegressor
 from sklearn.tree import DecisionTreeClassifier as SKDecisionTreeClassifier
 from sklearn.neural_network import MLPClassifier
 from sklearn.naive_bayes import GaussianNB, BernoulliNB, MultinomialNB
@@ -76,6 +76,26 @@ def test_KNN_classifier():
 
         model = KNeighborsClassifier(n_neighbors=k)
         result = stratified_k_fold(model, metric, X, y)
+        print(f'sklearn: mean={np.mean(result)}, std={np.std(result)}')
+
+
+def test_KNN_regressor():
+    X, y = make_regression(n_samples=500, n_features=5, 
+                           n_informative=5, n_targets=1) 
+
+    X = StandardScaler().fit(X).transform(X)
+
+    metric = mean_squared_error
+
+    for k in [3, 5, 7]:
+        print(f'k={k}:')
+
+        model = KNNRegressor(k=k)
+        result = bootstrap(model, metric, X, y)
+        print(f'simpleml: mean={np.mean(result)}, std={np.std(result)}')
+
+        model = KNeighborsRegressor(n_neighbors=k)
+        result = bootstrap(model, metric, X, y)
         print(f'sklearn: mean={np.mean(result)}, std={np.std(result)}')
 
 
@@ -337,23 +357,24 @@ def test_one_vs_rest_classifier():
 
 if __name__ == '__main__':
     tests = [
-             #test_linear_regression, 
-             #test_logistic_regression, 
-             #test_KNN_classifier, 
-             #test_decision_tree_classifier, 
+             test_linear_regression, 
+             test_logistic_regression, 
+             test_KNN_classifier, 
+             test_KNN_regressor,
+             test_decision_tree_classifier, 
              test_neural_network, 
-             #test_gaussian_naive_bayes_classifier, 
-             #test_bernoulli_naive_bayes_classifier, 
-             #test_multinomial_naive_bayes_classifier, 
-             #test_kmeans_clustering,
-             #test_principal_component_analysis, 
-             #test_metrics, 
-             #test_preprocessing, 
-             #test_holdout,
-             #test_stratified_k_fold, 
-             #test_leave_one_out, 
-             #test_bootstrap, 
-             #test_one_vs_rest_classifier
+             test_gaussian_naive_bayes_classifier, 
+             test_bernoulli_naive_bayes_classifier, 
+             test_multinomial_naive_bayes_classifier, 
+             test_kmeans_clustering,
+             test_principal_component_analysis, 
+             test_metrics, 
+             test_preprocessing, 
+             test_holdout,
+             test_stratified_k_fold, 
+             test_leave_one_out, 
+             test_bootstrap, 
+             test_one_vs_rest_classifier
             ]
 
     for test in tests:
