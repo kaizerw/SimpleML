@@ -3,8 +3,9 @@ import numpy as np
 
 class DecisionTreeClassifier:
 
-    def __init__(self, criterion='information_gain'):
+    def __init__(self, criterion='information_gain', max_depth=None):
         self.criterion = criterion
+        self.max_depth = max_depth
         self._eval_criterion = {}
         if criterion == 'information_gain':
             self._eval_criterion = self._information_gain
@@ -21,9 +22,9 @@ class DecisionTreeClassifier:
 
         samples_idx = np.array(range(self.n_samples))
         features_idx = np.array(range(self.n_features))
-        self._tree = self._step(samples_idx, features_idx)
+        self._tree = self._step(samples_idx, features_idx, 0)
 
-    def _step(self, samples_idx, features_idx):
+    def _step(self, samples_idx, features_idx, depth):
         node = {}
 
         # If all samples in 'samples_idx' have a same label 'y', 
@@ -33,9 +34,10 @@ class DecisionTreeClassifier:
             node['is_leave'] = True
             return node
 
-        # If the list of features is empty, return a leave node labeled with the most 
+        # If the list of features is empty or depth equals to max depth
+        # return a leave node labeled with the most 
         # frequent class in 'samples_idx'
-        if len(features_idx) == 0:
+        if len(features_idx) == 0 or depth == self.max_depth:
             node['prediction'] = self._most_frequent_class(samples_idx)
             node['is_leave'] = True
             return node
@@ -74,7 +76,7 @@ class DecisionTreeClassifier:
             child = {'value': value,
                      'feature': best_feature,
                      'is_leave': False, 
-                     'tree': self._step(new_samples_idx, new_features_idx)}
+                     'tree': self._step(new_samples_idx, new_features_idx, depth + 1)}
             node['children'].append(child)
 
         return node
