@@ -43,8 +43,6 @@ def test_logistic_regression():
     X, y = make_classification(n_samples=500, n_features=5, n_informative=5, 
                                n_redundant=0, n_repeated=0, n_classes=2)
 
-    X = StandardScaler().fit(X).transform(X)
-
     metric = f1_score
 
     model = LogisticRegression()
@@ -371,24 +369,24 @@ def test_one_vs_rest_classifier():
 
 if __name__ == '__main__':
     tests = [
-             #test_linear_regression, 
-             #test_logistic_regression, 
-             #test_KNN_classifier, 
-             #test_KNN_regressor,
+             test_linear_regression, 
+             test_logistic_regression, 
+             test_KNN_classifier, 
+             test_KNN_regressor,
              test_decision_tree_classifier, 
-             #test_neural_network, 
-             #test_gaussian_naive_bayes_classifier, 
-             #test_bernoulli_naive_bayes_classifier, 
-             #test_multinomial_naive_bayes_classifier, 
-             #test_kmeans_clustering,
-             #test_principal_component_analysis, 
-             #test_metrics, 
-             #test_preprocessing, 
-             #test_holdout,
-             #test_stratified_k_fold, 
-             #test_leave_one_out, 
-             #test_bootstrap, 
-             #test_one_vs_rest_classifier
+             test_neural_network, 
+             test_gaussian_naive_bayes_classifier, 
+             test_bernoulli_naive_bayes_classifier, 
+             test_multinomial_naive_bayes_classifier, 
+             test_kmeans_clustering,
+             test_principal_component_analysis, 
+             test_metrics, 
+             test_preprocessing, 
+             test_holdout,
+             test_stratified_k_fold, 
+             test_leave_one_out, 
+             test_bootstrap, 
+             test_one_vs_rest_classifier
             ]
 
     for test in tests:

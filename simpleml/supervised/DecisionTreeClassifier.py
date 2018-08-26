@@ -4,10 +4,12 @@ import numpy as np
 class DecisionTreeClassifier:
 
     def __init__(self, criterion='information_gain', max_depth=100, 
-                 num_cuts=10):
+                 num_cuts=None):
         self.criterion = criterion
         self.max_depth = max_depth
         self.num_cuts = num_cuts
+        if self.num_cuts is not None:
+            self.num_cuts = int(self.num_cuts)
         self._eval_criterion = {}
         if criterion == 'information_gain':
             self._eval_criterion = self._information_gain
