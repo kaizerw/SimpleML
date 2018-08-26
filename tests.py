@@ -103,9 +103,11 @@ def test_decision_tree_classifier():
     X, y = make_classification(n_samples=500, n_features=5, n_informative=5, 
                                n_redundant=0, n_repeated=0, n_classes=2)
 
-    # By now, only works with categorical features
-    # TODO: Generalize to numeric and mixed features
-    X = abs(X.astype(int))
+    X = StandardScaler().fit(X).transform(X)
+
+    # Create one artificial categorical feature
+    X[:, 0] *= np.random.randint(10, size=X.shape[0])
+    X[:, 0] = abs(X[:, 0].astype(np.int64))
 
     metric = f1_score
 
