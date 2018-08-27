@@ -26,6 +26,6 @@ class OneVsRestClassifier:
         y_pred = np.zeros(n_samples_pred)
         for i in range(n_samples_pred):
             x = np.reshape(X[i, :], (1, -1))
-            y_pred[i] = np.argmax([classifier._activation(x)
+            y_pred[i] = np.argmax([classifier._activation(x, classifier.theta)
                                    for classifier in self.classifiers])
         return y_pred

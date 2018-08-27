@@ -25,7 +25,8 @@ class MultinomialNaiveBayesClassifier:
             n_total = sum(sum(self.X[self.y == classe, :]))
             for feature in range(self.n_features):
                 n_samples = sum(self.X[self.y == classe, feature])
-                prob = (n_samples + self.alpha) / (n_total + self.alpha * self.n_features)
+                prob = ((n_samples + self.alpha) / 
+                        (n_total + self.alpha * self.n_features))
                 self.conditional_probs[classe, feature] = prob
 
     def predict(self, X):

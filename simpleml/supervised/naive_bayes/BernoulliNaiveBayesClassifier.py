@@ -29,7 +29,8 @@ class BernoulliNaiveBayesClassifier:
             for feature in range(self.n_features):
                 idx = self.X[:, feature] == 1
                 n_samples = sum(self.y[idx] == classe)
-                prob = (n_samples + self.alpha) / (sum(self.y == classe) + self.alpha * self.n_classes)
+                prob = ((n_samples + self.alpha) / 
+                        (sum(self.y == classe) + self.alpha * self.n_classes))
                 self.conditional_probs[classe, feature] = prob
 
     def predict(self, X):

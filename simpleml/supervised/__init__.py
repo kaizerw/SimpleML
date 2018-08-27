@@ -3,5 +3,5 @@ from .LogisticRegression import LogisticRegression
 from .DecisionTreeClassifier import DecisionTreeClassifier
 from .KNNClassifier import KNNClassifier
 from .KNNRegressor import KNNRegressor
-from .NeuralNetwork import NeuralNetwork
+from .ShallowNeuralNetwork import ShallowNeuralNetwork
 from .OneVsRestClassifier import OneVsRestClassifier

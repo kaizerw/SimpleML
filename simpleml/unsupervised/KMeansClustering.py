@@ -23,7 +23,8 @@ class KMeansClustering:
             # C[i] = k: centroid k is the closest one to sample i
             C = {}
             for i in range(self.n_samples):
-                C[i] = np.argmin([self._metric(X[i, :], self.centroids[j, :]) for j in range(self.k)])
+                C[i] = np.argmin([self._metric(X[i, :], self.centroids[j, :]) 
+                                 for j in range(self.k)])
 
             # Move centroid step
             for j in range(self.k):
@@ -37,5 +38,6 @@ class KMeansClustering:
         y_pred = np.zeros(n_samples_test)
         # Predict class from the closest cluster centroid
         for i in range(n_samples_test):
-            y_pred[i] = np.argmin([self._metric(X[i, :], self.centroids[j, :]) for j in range(self.k)])
+            y_pred[i] = np.argmin([self._metric(X[i, :], self.centroids[j, :]) 
+                                  for j in range(self.k)])
         return y_pred

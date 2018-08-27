@@ -22,7 +22,8 @@ class KNNRegressor:
             # Calculate dists from all samples to X_test[i]
             dists = []
             for j in range(self.X_train.shape[0]):
-                dists.append([j, self._metric(self.X_train[j, :], X_test[i, :])])
+                dists.append([j, self._metric(self.X_train[j, :], 
+                                              X_test[i, :])])
             
             # Collect the k closest samples
             dists.sort(key=lambda i: i[1])

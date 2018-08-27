@@ -2,7 +2,7 @@ import numpy as np
 from scipy.optimize import minimize
 
 
-class NeuralNetwork:
+class ShallowNeuralNetwork:
 
     def __init__(self, alpha=1e-3, max_iter=1e2, tol=1e-3, 
                  neurons_hidden_layer=25, lambd=0, 
@@ -74,9 +74,11 @@ class NeuralNetwork:
         begin_theta1 = 0
         end_theta1 = (neurons_input_layer + 1) * neurons_hidden_layer
         theta1 = thetas[begin_theta1:end_theta1]
-        theta1 = theta1.reshape((neurons_input_layer + 1, neurons_hidden_layer))
+        theta1 = theta1.reshape((neurons_input_layer + 1, 
+                                 neurons_hidden_layer))
         theta2 = thetas[end_theta1:]
-        theta2 = theta2.reshape((neurons_hidden_layer + 1, neurons_output_layer))
+        theta2 = theta2.reshape((neurons_hidden_layer + 1, 
+                                 neurons_output_layer))
         return theta1, theta2
 
     def _sigmoid_gradient(self, z):

@@ -18,7 +18,8 @@ def holdout(X, y, train_size=0.7, shuffle=True):
     return X[train_idx, :], X[test_idx, :], y[train_idx], y[test_idx]
 
 
-def stratified_k_fold(model, metric, X, y, n_folds=5, repetitions=1, shuffle=True):
+def stratified_k_fold(model, metric, X, y, n_folds=5, repetitions=1, 
+                      shuffle=True):
     classes = np.unique(y)
 
     evaluations = []
@@ -41,7 +42,8 @@ def stratified_k_fold(model, metric, X, y, n_folds=5, repetitions=1, shuffle=Tru
                 begin = int(fold * n_samples)
                 last = int(begin + n_samples)
                 idx_test.extend(idx_samples_per_class[classe][begin:last])
-                idx_train.extend(list(set(idx_samples_per_class[classe]) - set(idx_test)))
+                idx_train.extend(list(set(idx_samples_per_class[classe]) - 
+                                      set(idx_test)))
 
             X_train = X[idx_train, :]
             y_train = y[idx_train]

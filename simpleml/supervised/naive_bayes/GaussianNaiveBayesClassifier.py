@@ -34,7 +34,9 @@ class GaussianNaiveBayesClassifier:
                     for value in np.unique(self.X[:, feature]):
                         idx = self.X[:, feature] == value
                         n_samples = sum(self.y[idx] == classe)
-                        prob = (n_samples + self.alpha) / (sum(self.y == classe) + self.alpha * self.n_classes)
+                        prob = ((n_samples + self.alpha) / 
+                                (sum(self.y == classe) + self.alpha * 
+                                 self.n_classes))
                         self.conditional_probs[classe, feature, value] = prob                
 
     def predict(self, X):
@@ -64,4 +66,5 @@ class GaussianNaiveBayesClassifier:
         return y_pred
 
     def _gaussian(self, x, mu, sigma):
-        return (1 / np.sqrt(2 * np.pi * sigma ** 2)) * np.exp(-((x - mu) ** 2 / (2 * sigma ** 2)))
+        return ((1 / np.sqrt(2 * np.pi * sigma ** 2)) *
+                np.exp(-((x - mu) ** 2 / (2 * sigma ** 2))))

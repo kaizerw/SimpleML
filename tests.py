@@ -109,7 +109,7 @@ def test_decision_tree_classifier():
 
     metric = f1_score
 
-    model = DecisionTreeClassifier()
+    model = DecisionTreeClassifier(num_cuts=5)
     model.fit(X, y)
     y_pred = model.predict(X)
     y_true = y
@@ -121,7 +121,7 @@ def test_decision_tree_classifier():
     y_true = y
     print(f'sklearn: {metric(y_true, y_pred)}')
 
-    model = DecisionTreeClassifier(max_depth=3)
+    model = DecisionTreeClassifier(max_depth=3, num_cuts=5)
     model.fit(X, y)
     y_pred = model.predict(X)
     y_true = y
@@ -134,7 +134,7 @@ def test_decision_tree_classifier():
     print(f'sklearn max_depth = 3: {metric(y_true, y_pred)}')
 
 
-def test_neural_network():
+def test_shallow_neural_network():
     X, y = make_classification(n_samples=500, n_features=5, n_informative=5, 
                                n_redundant=0, n_repeated=0, n_classes=2)
 
@@ -142,11 +142,11 @@ def test_neural_network():
 
     metric = f1_score
 
-    model = NeuralNetwork()
+    model = ShallowNeuralNetwork()
     result = stratified_k_fold(model, metric, X, y)
     print(f'simpleml BGD: mean={np.mean(result)}, std={np.std(result)}')
 
-    model = NeuralNetwork(method='BFGS')
+    model = ShallowNeuralNetwork(method='BFGS')
     result = stratified_k_fold(model, metric, X, y)
     print(f'simpleml BFGS: mean={np.mean(result)}, std={np.std(result)}')
     
@@ -221,13 +221,15 @@ def test_kmeans_clustering():
     model.fit(X)
     y_pred = model.predict(X)
 
+    centroids = model.centroids
+
     plt.title('KMeans clustering with k=5')
     plt.scatter(X[y_pred==0, 0], X[y_pred==0, 1], c='r', alpha=0.5)
     plt.scatter(X[y_pred==1, 0], X[y_pred==1, 1], c='g', alpha=0.5)
     plt.scatter(X[y_pred==2, 0], X[y_pred==2, 1], c='b', alpha=0.5)
     plt.scatter(X[y_pred==3, 0], X[y_pred==3, 1], c='y', alpha=0.5)
     plt.scatter(X[y_pred==4, 0], X[y_pred==4, 1], c='m', alpha=0.5)
-    plt.scatter(model.centroids[:, 0], model.centroids[:, 1], marker='o', s=120, c='k')
+    plt.scatter(centroids[:, 0], centroids[:, 1], marker='o', s=120, c='k')
     plt.show()
 
 
@@ -256,20 +258,31 @@ def test_metrics():
     y_pred = model.predict(X)
     y_true = y
 
-    print('Confusion Matrix:', confusion_matrix(y_true, y_pred) == metrics.confusion_matrix(y_true, y_pred), sep='\n')
-    print('Delta Accuracy:', accuracy(y_true, y_pred) - metrics.accuracy_score(y_true, y_pred))
+    print('Confusion Matrix:', confusion_matrix(y_true, y_pred) == 
+                            metrics.confusion_matrix(y_true, y_pred), sep='\n')
+    print('Delta Accuracy:', accuracy(y_true, y_pred) - 
+                             metrics.accuracy_score(y_true, y_pred))
     
-    print('Delta Micro Recall:', recall(y_true, y_true, kind='micro') - metrics.recall_score(y_true, y_pred, average='micro'))
-    print('Delta Micro Precision:', precision(y_true, y_pred, kind='micro') - metrics.precision_score(y_true, y_pred, average='micro'))
-    print('Delta Micro F1-score:', f1_score(y_true, y_pred, kind='micro') - metrics.f1_score(y_true, y_pred, average='micro'))
+    print('Delta Micro Recall:', recall(y_true, y_true, kind='micro') - 
+                        metrics.recall_score(y_true, y_pred, average='micro'))
+    print('Delta Micro Precision:', precision(y_true, y_pred, kind='micro') - 
+                    metrics.precision_score(y_true, y_pred, average='micro'))
+    print('Delta Micro F1-score:', f1_score(y_true, y_pred, kind='micro') - 
+                            metrics.f1_score(y_true, y_pred, average='micro'))
 
-    print('Delta Macro Recall:', recall(y_true, y_true, kind='macro') - metrics.recall_score(y_true, y_pred, average='macro'))
-    print('Delta Macro Precision:', precision(y_true, y_pred, kind='macro') - metrics.precision_score(y_true, y_pred, average='macro'))
-    print('Delta Macro F1-score:', f1_score(y_true, y_pred, kind='macro') - metrics.f1_score(y_true, y_pred, average='macro'))
+    print('Delta Macro Recall:', recall(y_true, y_true, kind='macro') - 
+                        metrics.recall_score(y_true, y_pred, average='macro'))
+    print('Delta Macro Precision:', precision(y_true, y_pred, kind='macro') - 
+                    metrics.precision_score(y_true, y_pred, average='macro'))
+    print('Delta Macro F1-score:', f1_score(y_true, y_pred, kind='macro') - 
+                            metrics.f1_score(y_true, y_pred, average='macro'))
 
-    print('Delta All Recall:', recall(y_true, y_true, kind='all') - metrics.recall_score(y_true, y_pred, average=None))
-    print('Delta All Precision:', precision(y_true, y_pred, kind='all') - metrics.precision_score(y_true, y_pred, average=None))
-    print('Delta All F1-score:', f1_score(y_true, y_pred, kind='all') - metrics.f1_score(y_true, y_pred, average=None))
+    print('Delta All Recall:', recall(y_true, y_true, kind='all') - 
+                            metrics.recall_score(y_true, y_pred, average=None))
+    print('Delta All Precision:', precision(y_true, y_pred, kind='all') - 
+                        metrics.precision_score(y_true, y_pred, average=None))
+    print('Delta All F1-score:', f1_score(y_true, y_pred, kind='all') - 
+                                metrics.f1_score(y_true, y_pred, average=None))
 
     print('*' * 80)
 
@@ -280,9 +293,12 @@ def test_metrics():
     y_pred = model.predict(X)
     y_true = y
 
-    print('Delta mean_absolute_error:', mean_absolute_error(y_true, y_pred) - metrics.mean_absolute_error(y_true, y_pred))
-    print('Delta mean_squared_error:', mean_squared_error(y_true, y_pred) - metrics.mean_squared_error(y_true, y_pred))
-    print('Delta r2_score:', r2_score(y_true, y_pred) - metrics.r2_score(y_true, y_pred))
+    print('Delta mean_absolute_error:', mean_absolute_error(y_true, y_pred) - 
+                                    metrics.mean_absolute_error(y_true, y_pred))
+    print('Delta mean_squared_error:', mean_squared_error(y_true, y_pred) - 
+                                    metrics.mean_squared_error(y_true, y_pred))
+    print('Delta r2_score:', r2_score(y_true, y_pred) - 
+                             metrics.r2_score(y_true, y_pred))
 
 
 def test_preprocessing():
@@ -291,13 +307,17 @@ def test_preprocessing():
 
     X_min_max = MinMaxScaler().fit(X).transform(X)
     X_standard = StandardScaler().fit(X).transform(X)
-    print('simpleml: MinMax:', np.min(X_min_max, axis=0), np.max(X_min_max, axis=0))
-    print('simpleml: Standard:', np.mean(X_standard, axis=0), np.std(X_standard, axis=0))
+    print('simpleml: MinMax:', np.min(X_min_max, axis=0), 
+                               np.max(X_min_max, axis=0))
+    print('simpleml: Standard:', np.mean(X_standard, axis=0), 
+                                 np.std(X_standard, axis=0))
 
     X_min_max = preprocessing.MinMaxScaler().fit(X).transform(X)
     X_standard = preprocessing.StandardScaler().fit(X).transform(X)
-    print('sklearn: MinMax:', np.min(X_min_max, axis=0), np.max(X_min_max, axis=0))
-    print('sklearn: Standard:', np.mean(X_standard, axis=0), np.std(X_standard, axis=0))
+    print('sklearn: MinMax:', np.min(X_min_max, axis=0), 
+                              np.max(X_min_max, axis=0))
+    print('sklearn: Standard:', np.mean(X_standard, axis=0), 
+                                np.std(X_standard, axis=0))
 
 
 def test_holdout():
@@ -374,7 +394,7 @@ if __name__ == '__main__':
              test_KNN_classifier, 
              test_KNN_regressor,
              test_decision_tree_classifier, 
-             test_neural_network, 
+             test_shallow_neural_network, 
              test_gaussian_naive_bayes_classifier, 
              test_bernoulli_naive_bayes_classifier, 
              test_multinomial_naive_bayes_classifier, 
