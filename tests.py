@@ -6,6 +6,7 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.naive_bayes import GaussianNB, BernoulliNB, MultinomialNB
 from sklearn.multiclass import OneVsRestClassifier as SKOneVsRestClassifier
 from sklearn.ensemble import VotingClassifier as SKVotingClassifier
+from sklearn.ensemble import BaggingClassifier as SKBaggingClassifier
 from sklearn.datasets import make_classification, make_blobs, make_regression
 import sklearn.metrics as metrics
 import sklearn.preprocessing as preprocessing
@@ -409,27 +410,45 @@ def test_voting_classifier():
     print(f'sklearn: mean={np.mean(result)}, std={np.std(result)}')
 
 
+def test_bagging_classifier():
+    X, y = make_classification(n_samples=500, n_features=10, n_informative=10, 
+                               n_redundant=0, n_repeated=0, n_classes=5)
+
+    X = StandardScaler().fit(X).transform(X)
+
+    metric = f1_score
+
+    model = BaggingClassifier(KNeighborsClassifier(), n_models=10)
+    result = stratified_k_fold(model, metric, X, y)
+    print(f'simpleml: mean={np.mean(result)}, std={np.std(result)}')
+
+    model = SKBaggingClassifier(KNeighborsClassifier(), n_estimators=10)
+    result = stratified_k_fold(model, metric, X, y)
+    print(f'sklearn: mean={np.mean(result)}, std={np.std(result)}')
+
+
 if __name__ == '__main__':
     tests = [
-             #test_linear_regression, 
-             #test_logistic_regression, 
-             #test_KNN_classifier, 
-             #test_KNN_regressor,
-             #test_decision_tree_classifier, 
-             #test_shallow_neural_network, 
-             #test_gaussian_naive_bayes_classifier, 
-             #test_bernoulli_naive_bayes_classifier, 
-             #test_multinomial_naive_bayes_classifier, 
-             #test_kmeans_clustering,
-             #test_principal_component_analysis, 
-             #test_metrics, 
-             #test_preprocessing, 
-             #test_holdout,
-             #test_stratified_k_fold, 
-             #test_leave_one_out, 
-             #test_bootstrap, 
-             #test_one_vs_rest_classifier, 
-             test_voting_classifier
+             test_linear_regression, 
+             test_logistic_regression, 
+             test_KNN_classifier, 
+             test_KNN_regressor,
+             test_decision_tree_classifier, 
+             test_shallow_neural_network, 
+             test_gaussian_naive_bayes_classifier, 
+             test_bernoulli_naive_bayes_classifier, 
+             test_multinomial_naive_bayes_classifier, 
+             test_kmeans_clustering,
+             test_principal_component_analysis, 
+             test_metrics, 
+             test_preprocessing, 
+             test_holdout,
+             test_stratified_k_fold, 
+             test_leave_one_out, 
+             test_bootstrap, 
+             test_one_vs_rest_classifier, 
+             test_voting_classifier, 
+             test_bagging_classifier
             ]
 
     for test in tests:
