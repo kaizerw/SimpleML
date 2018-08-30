@@ -105,8 +105,6 @@ def test_decision_tree_classifier():
     X, y = make_classification(n_samples=500, n_features=5, n_informative=5, 
                                n_redundant=0, n_repeated=0, n_classes=2)
 
-    X = StandardScaler().fit(X).transform(X)
-
     # Create one artificial categorical feature
     X[:, 0] *= np.random.randint(10, size=X.shape[0])
     X[:, 0] = abs(X[:, 0].astype(np.int64))
@@ -432,18 +430,29 @@ def test_random_forest_classifier():
     X, y = make_classification(n_samples=500, n_features=10, n_informative=10, 
                                n_redundant=0, n_repeated=0, n_classes=5)
 
-    # X = StandardScaler().fit(X).transform(X)
-    X = abs(X.astype(int))
-
     metric = f1_score
 
     model = RandomForestClassifier(n_models=10)
-    result = stratified_k_fold(model, metric, X, y)
-    print(f'simpleml: mean={np.mean(result)}, std={np.std(result)}')
+    model.fit(X, y)
+    y_pred = model.predict(X)
+    y_true = y
+    evaluation = metric(y_true, y_pred)
+    print(f'simpleml: f1_score={evaluation}')
 
     model = SKRandomForestClassifier(n_estimators=10)
-    result = stratified_k_fold(model, metric, X, y)
-    print(f'sklearn: mean={np.mean(result)}, std={np.std(result)}')
+    model.fit(X, y)
+    y_pred = model.predict(X)
+    y_true = y
+    evaluation = metric(y_true, y_pred)
+    print(f'sklearn: f1_score={evaluation}')
+
+    #model = RandomForestClassifier(n_models=10)
+    #result = leave_one_out(model, metric, X, y)
+    #print(f'simpleml: mean={np.mean(result)}, std={np.std(result)}')
+
+    #model = SKRandomForestClassifier(n_estimators=10)
+    #result = leave_one_out(model, metric, X, y)
+    #print(f'sklearn: mean={np.mean(result)}, std={np.std(result)}')
 
 
 if __name__ == '__main__':
@@ -452,7 +461,7 @@ if __name__ == '__main__':
              #test_logistic_regression, 
              #test_KNN_classifier, 
              #test_KNN_regressor,
-             test_decision_tree_classifier, 
+             #test_decision_tree_classifier, 
              #test_shallow_neural_network, 
              #test_gaussian_naive_bayes_classifier, 
              #test_bernoulli_naive_bayes_classifier, 
@@ -468,7 +477,7 @@ if __name__ == '__main__':
              #test_one_vs_rest_classifier, 
              #test_voting_classifier, 
              #test_bagging_classifier, 
-             #test_random_forest_classifier
+             test_random_forest_classifier
             ]
 
     for test in tests:

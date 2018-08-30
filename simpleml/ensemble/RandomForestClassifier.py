@@ -3,22 +3,15 @@ from scipy.stats import mode
 from random import choices, sample
 
 
-class DecisionTreeClassifier:
+class RandomTreeClassifier:
 
-    def __init__(self, criterion='information_gain', max_depth=100, 
-                 num_cuts=None):
+    def __init__(self, criterion='information_gain', max_depth=1000):
         self.criterion = criterion
         self.max_depth = max_depth
-        self.num_cuts = num_cuts
-        if self.num_cuts is not None:
-            self.num_cuts = int(self.num_cuts)
-        self._eval_criterion = {}
-        if criterion == 'information_gain':
-            self._eval_criterion = self._information_gain
-        elif criterion == 'gain_ratio':
-            self._eval_criterion = self._gain_ratio
-        elif criterion == 'gini_index':
-            self._eval_criterion = self._gini_index
+        self._eval = {}
+        self._eval['information_gain'] = self._information_gain
+        self._eval['gain_ratio'] = self._gain_ratio
+        self._eval['gini_index'] = self._gini_index
 
     def fit(self, X, y):
         self.n_samples, self.n_features = X.shape
@@ -27,8 +20,7 @@ class DecisionTreeClassifier:
         self.y = y
 
         samples_idx = np.array(range(self.n_samples))
-        k = int(np.sqrt(self.n_features))
-        features_idx = sample(list(range(self.n_features)), k=k)
+        features_idx = np.array(range(self.n_features))
         self._tree = self._step(samples_idx, features_idx, 0)
 
     def _step(self, samples_idx, features_idx, depth):
@@ -143,7 +135,7 @@ class DecisionTreeClassifier:
         best_feature = None
         max_gain = -np.inf
         for feature in features_idx:
-            gain = self._eval_criterion(samples_idx, feature)
+            gain = self._eval[self.criterion](samples_idx, feature)
             if gain > max_gain:
                 max_gain = gain
                 best_feature = feature
@@ -157,26 +149,9 @@ class DecisionTreeClassifier:
             cuts = np.unique(self.X[samples_idx, feature])
             kind = 'categorical'
         elif self.X[:, feature].dtype == 'float64':
-            if self.num_cuts is None:
-                data = []
-                for i in samples_idx:
-                    data.append([self.X[i, feature], self.y[i]])
-                
-                data.sort(key=lambda i: i[0])
-
-                last_class = data[0][1]
-                # Select all point cuts of this feature
-                # In this case, a cut point is the mean of the two values
-                # where a change of class occurs
-                for i in range(1, len(data)):
-                    if data[i][1] != last_class: 
-                        cuts.append(np.mean((data[i - 1][0], data[i][0])))
-                    last_class = data[i][1]
-                cuts.append(np.max(self.y[samples_idx]) + 1)
-            else:
-                min_x = self.X[:, feature].min()
-                max_x = self.X[:, feature].max()
-                cuts = list(np.linspace(min_x, max_x + 1, self.num_cuts))
+            # Select mean point as cut point of this feature
+            cuts.append(np.mean(self.X[samples_idx, feature]))
+            cuts.append(np.max(self.X[samples_idx, feature]) + 1)
             kind = 'numeric'
 
         return cuts, kind
@@ -286,8 +261,7 @@ class DecisionTreeClassifier:
 class RandomForestClassifier:
 
     def __init__(self, n_models=10):
-        self.models = [DecisionTreeClassifier() 
-                       for _ in range(n_models)]
+        self.models = [RandomTreeClassifier() for _ in range(n_models)]
         self.n_models = n_models
     
     def fit(self, X, y):

@@ -66,8 +66,7 @@ def leave_one_out(model, metric, X, y, shuffle=True):
         np.random.shuffle(idx)
         X = X[idx, :]
         y = y[idx]
-
-    classes = np.unique(y)
+        
     n_samples = y.shape[0]
 
     evaluations = []
