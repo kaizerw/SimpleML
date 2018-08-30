@@ -1,4 +1,5 @@
 import numpy as np
+import operator
 
 
 class DecisionTreeClassifier:
@@ -6,10 +7,15 @@ class DecisionTreeClassifier:
     def __init__(self, criterion='information_gain', max_depth=1000):
         self.criterion = criterion
         self.max_depth = max_depth
-        self._eval = {}
-        self._eval['information_gain'] = self._information_gain
-        self._eval['gain_ratio'] = self._gain_ratio
-        self._eval['gini_index'] = self._gini_index
+        self._eval = {
+            'information_gain': self._information_gain, 
+            'gain_ratio': self._gain_ratio, 
+            'gini_index': self._gini_index
+        }
+        self._comps = {
+            'categorical': operator.eq, 
+            'numeric': operator.le
+        }
 
     def fit(self, X, y):
         self.n_samples, self.n_features = X.shape
@@ -41,50 +47,83 @@ class DecisionTreeClassifier:
 
         # Select feature with best criterion division
         best_feature = self._choose_best_feature(samples_idx, features_idx)
-        
-        # Assign best feature to new node
-        node['feature'] = best_feature
 
         # Remove best feature from the list of features 'features_idx'
         new_features_idx = list(features_idx)
         new_features_idx.remove(best_feature)
         new_features_idx = np.array(new_features_idx)
 
-        node['children'] = []
         # Collect cut points of 'best_feature' feature, 
         # considering only the samples in 'samples_idx'
-        cuts, kind = self._select_cut_points(samples_idx, best_feature)
-        # For each cut point...
-        for value in cuts:
-            if kind == 'categorical':
+        kind = self._get_feature_kind(best_feature)
+        cuts = self._select_cut_points(samples_idx, best_feature, kind)
+
+        node['feature'] = best_feature
+        node['children'] = []
+        node['kind'] = kind
+
+        if kind == 'categorical':
+            # For each distinct category value...
+            for value in cuts:
                 # Collect only samples with 'best_feature' value 
                 # equal to 'value'
                 new_samples_idx = self.X[samples_idx, best_feature] == value
                 new_samples_idx = samples_idx[new_samples_idx]
-            elif kind == 'numeric':
-                # Collect only samples with 'best_feature' value 
-                # less than 'value'
-                new_samples_idx = self.X[samples_idx, best_feature] < value
-                new_samples_idx = samples_idx[new_samples_idx]
-            
-            # If 'new_samples_idx' is empty, return a leave node labeled 
-            # with the most frequent class in 'new_samples_idx'
-            if len(new_samples_idx) == 0:
-                node['prediction'] = self._most_frequent_class(new_samples_idx)
-                node['is_leave'] = True
-                return node
 
-            # Create recursively one subtree for each cut point
-            # of 'best_feature' feature 
-            node['is_leave'] = False
-            child = {'value': value,
-                     'feature': best_feature,
-                     'kind': kind, 
-                     'is_leave': False, 
-                     'tree': self._step(new_samples_idx, new_features_idx, 
-                                        depth + 1)}
-            node['children'].append(child)
+                # If 'new_samples_idx' is not empty then 
+                # create recursively one subtree for each distinct category 
+                # value of 'best_feature' feature 
+                if len(new_samples_idx) > 0:
+                    node['is_leave'] = False
+                    child = {'value': value,
+                            'feature': best_feature,
+                            'kind': kind,
+                            'is_leave': False, 
+                            'tree': self._step(new_samples_idx, 
+                                               new_features_idx, 
+                                               depth + 1)}
+                    node['children'].append(child)
 
+        elif kind == 'numeric':
+            cut_point = cuts[0]
+
+            # Collect only samples with 'best_feature' value 
+            # less or equal than 'cut_point'
+            idx_left = self._comps[kind](self.X[samples_idx, best_feature], cut_point)
+            new_samples_idx_left = samples_idx[idx_left]
+
+            # If 'new_samples_idx_left' is not empty then
+            # create recursively one subtree for samples with 
+            # 'best_feature' value <= cut point 
+            if len(new_samples_idx_left) > 0:
+                node['is_leave'] = False
+                child = {'value': cut_point,
+                        'feature': best_feature,
+                        'kind': kind, 
+                        'is_leave': False, 
+                        'tree': self._step(new_samples_idx_left, 
+                                           new_features_idx, 
+                                           depth + 1)}
+                node['children'].append(child)
+
+            # Collect only samples with 'best_feature' value 
+            # greater than 'cut_point'
+            idx_right = ~idx_left
+            new_samples_idx_right = samples_idx[idx_right]
+
+            # If 'new_samples_idx_right' is not empty then
+            # create recursively one subtree for samples with 
+            # 'best_feature' value > cut point 
+            if len(new_samples_idx_right) > 0:
+                node['is_leave'] = False
+                child = {'value': cut_point,
+                        'feature': best_feature,
+                        'is_leave': False, 
+                        'tree': self._step(new_samples_idx_right, 
+                                           new_features_idx, 
+                                           depth + 1)}
+                node['children'].append(child)
+        
         return node
 
     def predict(self, x):
@@ -97,19 +136,28 @@ class DecisionTreeClassifier:
                 i += 1
                 node = self._tree
             else:
-                for child in node['children']:
-                    feature = child['feature']
-                    value = child['value']
-                    kind = child['kind']
-                    if ((kind == 'categorical' and x[i, feature] == value) or 
-                       (kind == 'numeric' and x[i, feature] < value)):
+                kind = node['kind']
+                if kind == 'categorical':
+                    for child in node['children']:
                         if child['is_leave']:
                             y_pred[i] = child['prediction']
                             i += 1
                             node = self._tree
-                        else:
+                            break
+
+                        feature = child['feature']
+                        kind = child['kind']
+                        value = child['value']
+                        if self._comps[kind](x[i, feature], value):
                             node = child['tree']
-                        break
+                            break
+                elif kind == 'numeric':
+                    feature = node['children'][0]['feature']
+                    value = node['children'][0]['value']
+                    if self._comps[kind](x[i, feature], value):
+                        node = node['children'][0]['tree']
+                    else:
+                        node = node['children'][1]['tree']
         return y_pred
 
     def _all_same_class(self, samples_idx):
@@ -139,20 +187,26 @@ class DecisionTreeClassifier:
                 best_feature = feature
         return best_feature
 
-    def _select_cut_points(self, samples_idx, feature):
-        cuts = []
+    def _get_feature_kind(self, feature):
         kind = ''
-        if self.X[: feature].dtype == 'int64':
-            # Select all distinct values of this features as cuts
-            cuts = np.unique(self.X[samples_idx, feature])
+        if self.X[:, feature].dtype == 'int64':
             kind = 'categorical'
         elif self.X[:, feature].dtype == 'float64':
+            kind = 'numeric'
+        return kind
+
+    def _select_cut_points(self, samples_idx, feature, kind):
+        cuts = []
+
+        if kind == 'categorical':
+            # Select all distinct values of this features as cuts
+            cuts = np.unique(self.X[samples_idx, feature])
+        elif kind == 'numeric':
             # Select mean point as cut point of this feature
             cuts.append(np.mean(self.X[samples_idx, feature]))
             cuts.append(np.max(self.X[samples_idx, feature]) + 1)
-            kind = 'numeric'
 
-        return cuts, kind
+        return cuts
 
     def _entropy(self, samples_idx, feature=None):
         info = 0
@@ -166,14 +220,15 @@ class DecisionTreeClassifier:
                     info += prob_classe * np.log2(prob_classe)
             info = -info
         else:
-            values, kind = self._select_cut_points(samples_idx, feature)
+            kind = self._get_feature_kind(feature)
+            values = self._select_cut_points(samples_idx, feature, kind)
             for value in values:
                 if kind == 'categorical':
                     n_value = sum(self.X[samples_idx, feature] == value)
                     idx = np.where(self.X[samples_idx, feature] == value)
                 elif kind == 'numeric':
-                    n_value = sum(self.X[samples_idx, feature] < value)
-                    idx = np.where(self.X[samples_idx, feature] < value)
+                    n_value = sum(self.X[samples_idx, feature] <= value)
+                    idx = np.where(self.X[samples_idx, feature] <= value)
                 prob_value = n_value / n_total
                 if prob_value > 0:
                     feature_samples_idx = samples_idx[idx]
@@ -185,12 +240,13 @@ class DecisionTreeClassifier:
         info = 0
         n_total = len(samples_idx)
         
-        values, kind = self._select_cut_points(samples_idx, feature)
+        kind = self._get_feature_kind(feature)
+        values = self._select_cut_points(samples_idx, feature, kind)
         for value in values:
             if kind == 'categorical':
                 n_value = sum(self.X[samples_idx, feature] == value)
             elif kind == 'numeric':
-                n_value = sum(self.X[samples_idx, feature] < value)    
+                n_value = sum(self.X[samples_idx, feature] <= value)    
             prob_value = n_value / n_total
             if prob_value > 0:
                 info += prob_value * np.log2(prob_value)
@@ -225,7 +281,8 @@ class DecisionTreeClassifier:
 
         ginis_feature = {}
         n_total = len(samples_idx)
-        values, kind = self._select_cut_points(samples_idx, feature)
+        kind = self._get_feature_kind(feature)
+        values = self._select_cut_points(samples_idx, feature, kind)
         for value in values:
             ginis_feature[value] = 0
 
@@ -233,8 +290,8 @@ class DecisionTreeClassifier:
                 n_values = np.sum(self.X[samples_idx, feature] == value)
                 idx = np.where(self.X[samples_idx, feature] == value)
             elif kind == 'numeric':
-                n_values = np.sum(self.X[samples_idx, feature] < value)
-                idx = np.where(self.X[samples_idx, feature] < value)
+                n_values = np.sum(self.X[samples_idx, feature] <= value)
+                idx = np.where(self.X[samples_idx, feature] <= value)
             prob_value = n_values / n_total
             if prob_value > 0:
                 feature_samples_idx = samples_idx[idx]
@@ -245,8 +302,8 @@ class DecisionTreeClassifier:
                 n_values = np.sum(self.X[samples_idx, feature] != value)
                 idx = np.where(self.X[samples_idx, feature] != value)
             elif kind == 'numeric':
-                n_values = np.sum(self.X[samples_idx, feature] >= value)
-                idx = np.where(self.X[samples_idx, feature] >= value)
+                n_values = np.sum(self.X[samples_idx, feature] > value)
+                idx = np.where(self.X[samples_idx, feature] > value)
             prob_value = n_values / n_total
             if prob_value > 0:
                 feature_samples_idx = samples_idx[idx]

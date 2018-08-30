@@ -461,7 +461,7 @@ if __name__ == '__main__':
              #test_logistic_regression, 
              #test_KNN_classifier, 
              #test_KNN_regressor,
-             #test_decision_tree_classifier, 
+             test_decision_tree_classifier, 
              #test_shallow_neural_network, 
              #test_gaussian_naive_bayes_classifier, 
              #test_bernoulli_naive_bayes_classifier, 
@@ -477,7 +477,7 @@ if __name__ == '__main__':
              #test_one_vs_rest_classifier, 
              #test_voting_classifier, 
              #test_bagging_classifier, 
-             test_random_forest_classifier
+             #test_random_forest_classifier
             ]
 
     for test in tests:
