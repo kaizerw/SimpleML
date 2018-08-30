@@ -113,7 +113,7 @@ def test_decision_tree_classifier():
 
     metric = f1_score
 
-    model = DecisionTreeClassifier(num_cuts=5)
+    model = DecisionTreeClassifier(criterion='gini_index')
     model.fit(X, y)
     y_pred = model.predict(X)
     y_true = y
@@ -125,7 +125,7 @@ def test_decision_tree_classifier():
     y_true = y
     print(f'sklearn: {metric(y_true, y_pred)}')
 
-    model = DecisionTreeClassifier(max_depth=3, num_cuts=5)
+    model = DecisionTreeClassifier(max_depth=3)
     model.fit(X, y)
     y_pred = model.predict(X)
     y_true = y
@@ -452,7 +452,7 @@ if __name__ == '__main__':
              #test_logistic_regression, 
              #test_KNN_classifier, 
              #test_KNN_regressor,
-             #test_decision_tree_classifier, 
+             test_decision_tree_classifier, 
              #test_shallow_neural_network, 
              #test_gaussian_naive_bayes_classifier, 
              #test_bernoulli_naive_bayes_classifier, 
@@ -468,7 +468,7 @@ if __name__ == '__main__':
              #test_one_vs_rest_classifier, 
              #test_voting_classifier, 
              #test_bagging_classifier, 
-             test_random_forest_classifier
+             #test_random_forest_classifier
             ]
 
     for test in tests:
