@@ -207,7 +207,7 @@ def test_multinomial_naive_bayes_classifier():
 
 
 def test_kmeans_clustering():
-    X, _ = make_blobs(n_samples=500, n_features=5, centers=5)
+    X, _ = make_blobs(n_samples=500, n_features=5, centers=2)
 
     X = StandardScaler().fit(X).transform(X)
 
@@ -217,12 +217,9 @@ def test_kmeans_clustering():
 
     centroids = model.centroids
 
-    plt.title('KMeans clustering with k=5')
+    plt.title('KMeans clustering with k=2')
     plt.scatter(X[y_pred==0, 0], X[y_pred==0, 1], c='r', alpha=0.5)
     plt.scatter(X[y_pred==1, 0], X[y_pred==1, 1], c='g', alpha=0.5)
-    plt.scatter(X[y_pred==2, 0], X[y_pred==2, 1], c='b', alpha=0.5)
-    plt.scatter(X[y_pred==3, 0], X[y_pred==3, 1], c='y', alpha=0.5)
-    plt.scatter(X[y_pred==4, 0], X[y_pred==4, 1], c='m', alpha=0.5)
     plt.scatter(centroids[:, 0], centroids[:, 1], marker='o', s=120, c='k')
     plt.show()
 
@@ -365,8 +362,8 @@ def test_bootstrap():
 
 
 def test_one_vs_rest_classifier():
-    X, y = make_classification(n_samples=500, n_features=10, n_informative=10, 
-                               n_redundant=0, n_repeated=0, n_classes=5)
+    X, y = make_classification(n_samples=500, n_features=5, n_informative=5, 
+                               n_redundant=0, n_repeated=0, n_classes=2)
 
     X = StandardScaler().fit(X).transform(X)
 
@@ -382,8 +379,8 @@ def test_one_vs_rest_classifier():
 
 
 def test_voting_classifier():
-    X, y = make_classification(n_samples=500, n_features=10, n_informative=10, 
-                               n_redundant=0, n_repeated=0, n_classes=5)
+    X, y = make_classification(n_samples=500, n_features=5, n_informative=5, 
+                               n_redundant=0, n_repeated=0, n_classes=2)
 
     X = StandardScaler().fit(X).transform(X)
 
@@ -402,8 +399,8 @@ def test_voting_classifier():
 
 
 def test_bagging_classifier():
-    X, y = make_classification(n_samples=500, n_features=10, n_informative=10, 
-                               n_redundant=0, n_repeated=0, n_classes=5)
+    X, y = make_classification(n_samples=500, n_features=5, n_informative=5, 
+                               n_redundant=0, n_repeated=0, n_classes=2)
 
     X = StandardScaler().fit(X).transform(X)
 
@@ -419,57 +416,51 @@ def test_bagging_classifier():
 
 
 def test_random_forest_classifier():
-    X, y = make_classification(n_samples=500, n_features=10, n_informative=10, 
-                               n_redundant=0, n_repeated=0, n_classes=5)
+    X, y = make_classification(n_samples=500, n_features=5, n_informative=5, 
+                               n_redundant=0, n_repeated=0, n_classes=2)
 
     metric = f1_score
 
-    model = RandomForestClassifier(n_models=10)
-    model.fit(X, y)
-    y_pred = model.predict(X)
-    y_true = y
-    evaluation = metric(y_true, y_pred)
-    print(f'simpleml: f1_score={evaluation}')
+    model = RandomForestClassifier(n_trees=10)
+    result = stratified_k_fold(model, metric, X, y)
+    print(f'simpleml n_trees=10: mean={np.mean(result)}, std={np.std(result)}')
 
     model = SKRandomForestClassifier(n_estimators=10)
-    model.fit(X, y)
-    y_pred = model.predict(X)
-    y_true = y
-    evaluation = metric(y_true, y_pred)
-    print(f'sklearn: f1_score={evaluation}')
+    result = stratified_k_fold(model, metric, X, y)
+    print(f'sklearn n_trees=10: mean={np.mean(result)}, std={np.std(result)}')
 
-    #model = RandomForestClassifier(n_models=10)
-    #result = leave_one_out(model, metric, X, y)
-    #print(f'simpleml: mean={np.mean(result)}, std={np.std(result)}')
+    model = RandomForestClassifier(n_trees=50)
+    result = stratified_k_fold(model, metric, X, y)
+    print(f'simpleml n_trees=50: mean={np.mean(result)}, std={np.std(result)}')
 
-    #model = SKRandomForestClassifier(n_estimators=10)
-    #result = leave_one_out(model, metric, X, y)
-    #print(f'sklearn: mean={np.mean(result)}, std={np.std(result)}')
+    model = SKRandomForestClassifier(n_estimators=50)
+    result = stratified_k_fold(model, metric, X, y)
+    print(f'sklearn n_trees=50: mean={np.mean(result)}, std={np.std(result)}')
 
 
 if __name__ == '__main__':
     tests = [
-             #test_linear_regression, 
-             #test_logistic_regression, 
-             #test_KNN_classifier, 
-             #test_KNN_regressor,
+             test_linear_regression, 
+             test_logistic_regression, 
+             test_KNN_classifier, 
+             test_KNN_regressor,
              test_decision_tree_classifier, 
-             #test_shallow_neural_network, 
-             #test_gaussian_naive_bayes_classifier, 
-             #test_bernoulli_naive_bayes_classifier, 
-             #test_multinomial_naive_bayes_classifier, 
-             #test_kmeans_clustering,
-             #test_principal_component_analysis, 
-             #test_metrics, 
-             #test_preprocessing, 
-             #test_holdout,
-             #test_stratified_k_fold, 
-             #test_leave_one_out, 
-             #test_bootstrap, 
-             #test_one_vs_rest_classifier, 
-             #test_voting_classifier, 
-             #test_bagging_classifier, 
-             #test_random_forest_classifier
+             test_shallow_neural_network, 
+             test_gaussian_naive_bayes_classifier, 
+             test_bernoulli_naive_bayes_classifier, 
+             test_multinomial_naive_bayes_classifier, 
+             test_kmeans_clustering,
+             test_principal_component_analysis, 
+             test_metrics, 
+             test_preprocessing, 
+             test_holdout,
+             test_stratified_k_fold, 
+             test_leave_one_out, 
+             test_bootstrap, 
+             test_one_vs_rest_classifier, 
+             test_voting_classifier, 
+             test_bagging_classifier, 
+             test_random_forest_classifier
             ]
 
     for test in tests:

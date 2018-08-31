@@ -1,12 +1,14 @@
 import numpy as np
+from random import sample
 
 
 class DecisionTreeClassifier:
 
     def __init__(self, criterion='information_gain', max_depth=1000, 
-                 one_split_by_feature=False):
+                 one_split_by_feature=False, random_tree=False):
         self.max_depth = max_depth
         self.one_split_by_feature = one_split_by_feature
+        self.random_tree = random_tree
         self._evals = {'information_gain': self._information_gain, 
                        'gain_ratio': self._gain_ratio, 
                        'gini_index': self._gini_index}
@@ -19,6 +21,11 @@ class DecisionTreeClassifier:
 
         samples_idx = np.array(range(self.n_samples))
         features_idx = np.array(range(self.n_features))
+
+        # If random tree then evaluate only sqrt('features_idx') features
+        if self.random_tree:
+            self.n_random_features = int(np.sqrt(features_idx.shape[0]))
+
         self._tree = self._step(samples_idx, features_idx)
 
     def _step(self, samples_idx, features_idx, depth=0):
@@ -39,16 +46,20 @@ class DecisionTreeClassifier:
         if len(features_idx) == 0 or depth == self.max_depth:
             node['prediction'] = self._most_frequent_class(samples_idx)
             node['is_leave'] = True
-            return node
+            return node           
 
         # Select feature with best criterion division
         best_feature = self._choose_best_feature(samples_idx, features_idx)
 
-        # Remove best feature from the list of features 'features_idx'
-        new_features_idx = list(features_idx)
-        if self.one_split_by_feature:
-            new_features_idx.remove(best_feature)
-        new_features_idx = np.array(new_features_idx)
+        if self.random_tree:
+            # Do not change available features (always will be the whole set)
+            new_features_idx = features_idx
+        else:
+            new_features_idx = list(features_idx)
+            # Remove best feature from the list of features 'features_idx'
+            if self.one_split_by_feature:
+                new_features_idx.remove(best_feature)
+            new_features_idx = np.array(new_features_idx)
 
         # Collect cut points of 'best_feature' feature, 
         # considering only the samples in 'samples_idx'
@@ -169,6 +180,12 @@ class DecisionTreeClassifier:
         return max_classe
 
     def _choose_best_feature(self, samples_idx, features_idx):
+        # If random tree then evaluate only sqrt('features_idx') features
+        if self.random_tree:
+            features_idx = list(features_idx)
+            features_idx = sample(features_idx, k=self.n_random_features)
+            features_idx = np.array(features_idx)
+
         best_feature = None
         max_gain = -np.inf
         for feature in features_idx:
