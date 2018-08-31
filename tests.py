@@ -128,6 +128,19 @@ def test_decision_tree_classifier():
     print(f'sklearn max_depth=3: mean={np.mean(result)}, std={np.std(result)}')
 
 
+def test_show_decision_tree():
+    X, y = make_classification(n_samples=10, n_features=5, n_informative=5, 
+                               n_redundant=0, n_repeated=0, n_classes=2)
+
+    # Create one artificial categorical feature
+    X[:, 0] *= np.random.randint(10, size=X.shape[0])
+    X[:, 0] = abs(X[:, 0].astype(np.int64))
+
+    model = DecisionTreeClassifier()
+    model.fit(X, y)
+    model.show_decision_tree()
+
+
 def test_shallow_neural_network():
     X, y = make_classification(n_samples=500, n_features=5, n_informative=5, 
                                n_redundant=0, n_repeated=0, n_classes=2)
@@ -445,6 +458,7 @@ if __name__ == '__main__':
              test_KNN_classifier, 
              test_KNN_regressor,
              test_decision_tree_classifier, 
+             test_show_decision_tree, 
              test_shallow_neural_network, 
              test_gaussian_naive_bayes_classifier, 
              test_bernoulli_naive_bayes_classifier, 

@@ -1,5 +1,7 @@
 import numpy as np
 from random import sample
+from itertools import count
+from graphviz import Digraph
 
 
 class DecisionTreeClassifier:
@@ -9,6 +11,7 @@ class DecisionTreeClassifier:
         self.max_depth = max_depth
         self.one_split_by_feature = one_split_by_feature
         self.random_tree = random_tree
+        self.generate_id = count()
         self._evals = {'information_gain': self._information_gain, 
                        'gain_ratio': self._gain_ratio, 
                        'gini_index': self._gini_index}
@@ -31,25 +34,27 @@ class DecisionTreeClassifier:
     def _step(self, samples_idx, features_idx, depth=0):
         node = {}
         node['n_samples'] = samples_idx.shape[0]
-        node['is_leave'] = False
+        node['is_leaf'] = False
+        node['id'] = next(self.generate_id)
 
         # If all samples in 'samples_idx' have a same label 'y', 
-        # return a leave node labeled with 'y'
+        # return a leaf node labeled with 'y'
         if self._all_same_class(samples_idx):
             node['prediction'] = self.y[samples_idx[0]]
-            node['is_leave'] = True
+            node['is_leaf'] = True
             return node
 
         # If the list of features is empty or depth equals to max depth
-        # return a leave node labeled with the most 
+        # return a leaf node labeled with the most 
         # frequent class in 'samples_idx'
         if len(features_idx) == 0 or depth == self.max_depth:
             node['prediction'] = self._most_frequent_class(samples_idx)
-            node['is_leave'] = True
+            node['is_leaf'] = True
             return node           
 
         # Select feature with best criterion division
-        best_feature = self._choose_best_feature(samples_idx, features_idx)
+        best_feature, value = self._choose_best_feature(samples_idx, 
+                                                        features_idx)
 
         if self.random_tree:
             # Do not change available features (always will be the whole set)
@@ -68,6 +73,7 @@ class DecisionTreeClassifier:
 
         node['out_feature'] = best_feature
         node['kind'] = kind
+        node['eval'] = round(value, 3)
 
         if kind == 'categorical':
             node['children'] = []
@@ -81,13 +87,8 @@ class DecisionTreeClassifier:
 
                 # Create recursively one subtree for each distinct category 
                 # value of 'best_feature' feature 
-                child = {'in_value': value,
-                         'kind': kind,
-                         'n_samples': new_samples_idx.shape[0], 
-                         'is_leave': False, 
-                         'tree': self._step(new_samples_idx, 
-                                            new_features_idx, 
-                                            depth + 1)}
+                child = self._step(new_samples_idx, new_features_idx, depth + 1)
+                child['in_value'] = value
                 node['children'].append(child)
 
         elif kind == 'numeric':
@@ -101,13 +102,10 @@ class DecisionTreeClassifier:
 
             # Create recursively one subtree for samples with 
             # 'best_feature' value <= cut point 
-            node['child_left'] = {'in_value': cut_point,
-                                  'kind': kind, 
-                                  'n_samples': new_samples_idx_left.shape[0], 
-                                  'is_leave': False, 
-                                  'tree': self._step(new_samples_idx_left, 
-                                                     new_features_idx, 
-                                                     depth + 1)}
+            child = self._step(new_samples_idx_left, new_features_idx, 
+                               depth + 1)
+            child['in_value'] = cut_point
+            node['child_left'] = child
 
             # Collect only samples with 'best_feature' value 
             # greater than 'cut_point'
@@ -115,14 +113,11 @@ class DecisionTreeClassifier:
             new_samples_idx_right = samples_idx[idx_right]
 
             # Create recursively one subtree for samples with 
-            # 'best_feature' value > cut point 
-            node['child_right'] = {'in_value': cut_point,
-                                   'kind': kind, 
-                                   'n_samples': new_samples_idx_right.shape[0], 
-                                   'is_leave': False, 
-                                   'tree': self._step(new_samples_idx_right, 
-                                                      new_features_idx, 
-                                                      depth + 1)}
+            # 'best_feature' value > cut point
+            child = self._step(new_samples_idx_right, new_features_idx, 
+                               depth + 1)
+            child['in_value'] = cut_point 
+            node['child_right'] = child
         
         return node
 
@@ -135,7 +130,7 @@ class DecisionTreeClassifier:
         return y_pred
 
     def _predict(self, x, node):
-        if node['is_leave']:
+        if node['is_leaf']:
             return node['prediction']
         
         feature = node['out_feature']
@@ -158,9 +153,9 @@ class DecisionTreeClassifier:
         elif kind == 'numeric':
             value = node['child_left']['in_value']
             if x[feature] <= value:
-                return self._predict(x, node['child_left']['tree'])
+                return self._predict(x, node['child_left'])
             else:
-                return self._predict(x, node['child_right']['tree'])
+                return self._predict(x, node['child_right'])
 
     def _all_same_class(self, samples_idx):
         for classe in self.classes:
@@ -193,7 +188,7 @@ class DecisionTreeClassifier:
             if gain > max_gain:
                 max_gain = gain
                 best_feature = feature
-        return best_feature
+        return best_feature, max_gain
 
     def _get_feature_kind(self, feature):
         kind = ''
@@ -210,7 +205,7 @@ class DecisionTreeClassifier:
             cuts = np.unique(self.X[samples_idx, feature])
         elif kind == 'numeric':
             # Select mean point as cut point of this feature
-            cuts.append(np.mean(self.X[samples_idx, feature]))
+            cuts.append(round(np.mean(self.X[samples_idx, feature]), 3))
         return cuts
 
     def _entropy(self, samples_idx, feature=None):
@@ -354,3 +349,78 @@ class DecisionTreeClassifier:
                 ginis_feature[value] += aux
         
         return gini_all - min(ginis_feature.values())
+
+    def show_decision_tree(self):
+        colors = {0: '#ff000055', 1: '#00ff0055', 2: '#0000ff55', 
+                  3: '#ffff0055', 4: '#ff00ff55', 5: '#00ffff55'}
+
+        nodes, edges = [], []
+        self._construct_tree(self._tree, nodes, edges)
+
+        decision_tree = Digraph(filename='tree')
+        decision_tree.edge_attr.update(arrowhead='vee')
+
+        for node in nodes:
+            label = ''
+
+            id = str(node['id'])
+            n_samples = str(node['n_samples'])
+
+            label += f'node_{id}\n'
+            label += f'n_samples = {n_samples}\n'
+
+            if node['is_leaf']:
+                prediction = node['prediction']
+                label += f"predicted class = {prediction}"
+                color = colors[prediction]
+                shape = 'circle'
+            else:
+                eval = str(node['eval'])
+                label += f'eval = {eval}\n'
+                shape = 'square'
+                color = '#77777755'
+
+            decision_tree.node(name=id, label=label, shape=shape, 
+                               fillcolor=color, style='filled')
+
+        for edge in edges:
+            tail_name = str(edge[0])
+            head_name = str(edge[1])
+            label = edge[2]
+            decision_tree.edge(tail_name=tail_name, head_name=head_name, 
+                               label=label)
+        
+        decision_tree.render()
+        decision_tree.view()
+
+    def _construct_tree(self, root, nodes, edges):
+        nodes.append(root)
+
+        if root['is_leaf']:
+            return
+
+        kind = root['kind']
+        if kind == 'categorical':
+            for child in root['children']:
+                id_root = root['id']
+                id_child = child['id']
+                out_feature = root['out_feature']
+                in_value = child['in_value']
+                label = f'feature_{out_feature} == {in_value}'
+                edges.append((id_root, id_child, label))
+                self._construct_tree(child, nodes, edges)
+        elif kind == 'numeric':
+            id_root = root['id']
+            child_left = root['child_left']
+            child_right = root['child_right']
+            id_child_left = child_left['id']
+            id_child_right = child_right['id']
+            out_feature = root['out_feature']
+            in_value_left = child_left['in_value']
+            in_value_right = child_right['in_value']
+            label_left = f'feature_{out_feature} <= {in_value_left}'
+            label_right = f'feature_{out_feature} > {in_value_right}'
+            edges.append((id_root, id_child_left, label_left))
+            edges.append((id_root, id_child_right, label_right))
+            self._construct_tree(child_left, nodes, edges)
+            self._construct_tree(child_right, nodes, edges)
