@@ -3,8 +3,10 @@ import numpy as np
 
 class DecisionTreeClassifier:
 
-    def __init__(self, criterion='information_gain', max_depth=1000):
+    def __init__(self, criterion='information_gain', max_depth=1000, 
+                 one_split_by_feature=False):
         self.max_depth = max_depth
+        self.one_split_by_feature = one_split_by_feature
         self._evals = {'information_gain': self._information_gain, 
                        'gain_ratio': self._gain_ratio, 
                        'gini_index': self._gini_index}
@@ -21,6 +23,8 @@ class DecisionTreeClassifier:
 
     def _step(self, samples_idx, features_idx, depth=0):
         node = {}
+        node['n_samples'] = samples_idx.shape[0]
+        node['is_leave'] = False
 
         # If all samples in 'samples_idx' have a same label 'y', 
         # return a leave node labeled with 'y'
@@ -42,7 +46,8 @@ class DecisionTreeClassifier:
 
         # Remove best feature from the list of features 'features_idx'
         new_features_idx = list(features_idx)
-        new_features_idx.remove(best_feature)
+        if self.one_split_by_feature:
+            new_features_idx.remove(best_feature)
         new_features_idx = np.array(new_features_idx)
 
         # Collect cut points of 'best_feature' feature, 
@@ -52,7 +57,6 @@ class DecisionTreeClassifier:
 
         node['out_feature'] = best_feature
         node['kind'] = kind
-        node['is_leave'] = False
 
         if kind == 'categorical':
             node['children'] = []
@@ -68,6 +72,7 @@ class DecisionTreeClassifier:
                 # value of 'best_feature' feature 
                 child = {'in_value': value,
                          'kind': kind,
+                         'n_samples': new_samples_idx.shape[0], 
                          'is_leave': False, 
                          'tree': self._step(new_samples_idx, 
                                             new_features_idx, 
@@ -87,6 +92,7 @@ class DecisionTreeClassifier:
             # 'best_feature' value <= cut point 
             node['child_left'] = {'in_value': cut_point,
                                   'kind': kind, 
+                                  'n_samples': new_samples_idx_left.shape[0], 
                                   'is_leave': False, 
                                   'tree': self._step(new_samples_idx_left, 
                                                      new_features_idx, 
@@ -100,6 +106,8 @@ class DecisionTreeClassifier:
             # Create recursively one subtree for samples with 
             # 'best_feature' value > cut point 
             node['child_right'] = {'in_value': cut_point,
+                                   'kind': kind, 
+                                   'n_samples': new_samples_idx_right.shape[0], 
                                    'is_leave': False, 
                                    'tree': self._step(new_samples_idx_right, 
                                                       new_features_idx, 
@@ -127,6 +135,15 @@ class DecisionTreeClassifier:
                 value = child['in_value']
                 if x[feature] == value:
                     return self._predict(x, child)
+            # if 'x[feature]' value is not in tree, 
+            # then choose the child with more samples
+            max_child = None
+            max_samples = -np.inf
+            for child in node['children']:
+                if child['n_samples'] > max_samples:
+                    max_child = child
+                    max_samples = child['n_samples']
+            return self._predict(x, max_child)
         elif kind == 'numeric':
             value = node['child_left']['in_value']
             if x[feature] <= value:

@@ -112,28 +112,20 @@ def test_decision_tree_classifier():
     metric = f1_score
 
     model = DecisionTreeClassifier()
-    model.fit(X, y)
-    y_pred = model.predict(X)
-    y_true = y
-    print(f'simpleml: {metric(y_true, y_pred)}')
+    result = stratified_k_fold(model, metric, X, y)
+    print(f'simpleml: mean={np.mean(result)}, std={np.std(result)}')
 
     model = SKDecisionTreeClassifier(criterion='entropy')
-    model.fit(X, y)
-    y_pred = model.predict(X)
-    y_true = y
-    print(f'sklearn: {metric(y_true, y_pred)}')
+    result = stratified_k_fold(model, metric, X, y)
+    print(f'sklearn: mean={np.mean(result)}, std={np.std(result)}')
 
     model = DecisionTreeClassifier(max_depth=3)
-    model.fit(X, y)
-    y_pred = model.predict(X)
-    y_true = y
-    print(f'simpleml max_depth = 3: {metric(y_true, y_pred)}')
+    result = stratified_k_fold(model, metric, X, y)
+    print(f'simpleml max_depth=3: mean={np.mean(result)}, std={np.std(result)}')
 
     model = SKDecisionTreeClassifier(criterion='entropy', max_depth=3)
-    model.fit(X, y)
-    y_pred = model.predict(X)
-    y_true = y
-    print(f'sklearn max_depth = 3: {metric(y_true, y_pred)}')
+    result = stratified_k_fold(model, metric, X, y)
+    print(f'sklearn max_depth=3: mean={np.mean(result)}, std={np.std(result)}')
 
 
 def test_shallow_neural_network():
