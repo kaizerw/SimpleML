@@ -111,13 +111,13 @@ def test_decision_tree_classifier():
 
     metric = f1_score
 
-    model = DecisionTreeClassifier(criterion='gini_index')
+    model = DecisionTreeClassifier()
     model.fit(X, y)
     y_pred = model.predict(X)
     y_true = y
     print(f'simpleml: {metric(y_true, y_pred)}')
 
-    model = SKDecisionTreeClassifier()
+    model = SKDecisionTreeClassifier(criterion='entropy')
     model.fit(X, y)
     y_pred = model.predict(X)
     y_true = y
