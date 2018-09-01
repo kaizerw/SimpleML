@@ -12,6 +12,7 @@ from sklearn.datasets import make_classification, make_blobs, make_regression
 import sklearn.metrics as metrics
 import sklearn.preprocessing as preprocessing
 import sklearn.model_selection as model_selection
+
 from simpleml.supervised import *
 from simpleml.supervised.naive_bayes import *
 from simpleml.unsupervised import *
@@ -19,6 +20,7 @@ from simpleml.model_selection import *
 from simpleml.metrics import *
 from simpleml.preprocessing import *
 from simpleml.ensemble import *
+
 import matplotlib.pyplot as plt
 
 
@@ -224,7 +226,7 @@ def test_kmeans_clustering():
 
     X = StandardScaler().fit(X).transform(X)
 
-    model = KMeansClustering(k=5)
+    model = KMeansClustering(k=2)
     model.fit(X)
     y_pred = model.predict(X)
 

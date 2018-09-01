@@ -1,5 +1,4 @@
 import numpy as np
-from scipy.stats import mode
 
 
 class VotingClassifier:
@@ -18,5 +17,5 @@ class VotingClassifier:
         for i in range(n_samples):
             x = np.reshape(X[i, :], (1, -1))
             predictions = [model.predict(x)[0] for model in self.models]
-            y_pred.append(mode(predictions).mode[0])
+            y_pred.append(np.argmax(np.bincount(predictions)))
         return np.array(y_pred)

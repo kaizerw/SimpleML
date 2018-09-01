@@ -1,5 +1,4 @@
 import numpy as np
-from scipy.stats import mode
 
 
 class KNNClassifier:
@@ -31,6 +30,6 @@ class KNNClassifier:
             preds = [self.y_train[i[0]] for i in dists[:self.k]]
             
             # Predict the class with more samples
-            y_pred[i] = mode(preds)[0]
+            y_pred[i] = np.argmax(np.bincount(preds))
 
         return y_pred

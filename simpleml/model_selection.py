@@ -1,5 +1,4 @@
 import numpy as np
-from random import choices
 
 
 def holdout(X, y, train_size=0.7, shuffle=True):
@@ -92,17 +91,17 @@ def leave_one_out(model, metric, X, y, shuffle=True):
 
 def bootstrap(model, metric, X, y, n_folds=5, repetitions=1, train_size=0.7):
     size_train = int(y.shape[0] * train_size)
-    idx = list(range(y.shape[0]))
+    idx = np.arange(0, y.shape[0])
 
     evaluations = []
 
-    for r in range(repetitions):
-        for fold in range(n_folds):
+    for _ in range(repetitions):
+        for _ in range(n_folds):
             np.random.shuffle(idx)
             X = X[idx, :]
             y = y[idx]
 
-            idx_train = choices(idx, k=size_train)
+            idx_train = idx[np.random.randint(0, len(idx), size_train)]
             idx_test = list(set(idx) - set(idx_train))
 
             X_train = X[idx_train, :]

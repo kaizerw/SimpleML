@@ -1,5 +1,4 @@
 import numpy as np
-from random import sample
 from itertools import count
 from graphviz import Digraph
 
@@ -177,9 +176,9 @@ class DecisionTreeClassifier:
     def _choose_best_feature(self, samples_idx, features_idx):
         # If random tree then evaluate only sqrt('features_idx') features
         if self.random_tree:
-            features_idx = list(features_idx)
-            features_idx = sample(features_idx, k=self.n_random_features)
-            features_idx = np.array(features_idx)
+            idx = np.arange(0, features_idx.shape[0])
+            np.random.shuffle(idx)
+            features_idx = features_idx[idx[:self.n_random_features]]
 
         best_feature = None
         max_gain = -np.inf
@@ -391,7 +390,6 @@ class DecisionTreeClassifier:
                                label=label)
         
         decision_tree.render()
-        decision_tree.view()
 
     def _construct_tree(self, root, nodes, edges):
         nodes.append(root)
