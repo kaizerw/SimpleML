@@ -22,7 +22,7 @@ def stratified_k_fold(model, metric, X, y, n_folds=5, repetitions=1,
     classes = np.unique(y)
 
     evaluations = []
-    for r in range(repetitions):
+    for _ in range(repetitions):
         if shuffle:
             idx = list(range(y.shape[0]))
             np.random.shuffle(idx)

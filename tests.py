@@ -308,7 +308,7 @@ def test_metrics():
 
 
 def test_preprocessing():
-    X, y = make_regression(n_samples=500, n_features=5, 
+    X, _ = make_regression(n_samples=500, n_features=5, 
                            n_informative=5, n_targets=1) 
 
     X_min_max = MinMaxScaler().fit(X).transform(X)
@@ -330,11 +330,11 @@ def test_holdout():
     X, y = make_classification(n_samples=100, n_features=5, n_informative=5, 
                                n_redundant=0, n_repeated=0, n_classes=2)
 
-    X_train, X_test, y_train, y_test = holdout(X, y)
+    _, _, y_train, y_test = holdout(X, y)
     print('simpleml: Train:', np.bincount(y_train))
     print('simpleml: Test:', np.bincount(y_test))
 
-    X_train, X_test, y_train, y_test = \
+    _, _, y_train, y_test = \
         model_selection.train_test_split(X, y, train_size=0.7, stratify=y)
     print('sklearn: Train:', np.bincount(y_train))
     print('sklearn: Test:', np.bincount(y_test))
