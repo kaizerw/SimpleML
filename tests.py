@@ -155,15 +155,21 @@ def test_shallow_neural_network():
     result = stratified_k_fold(model, metric, X, y)
     print(f'simpleml BGD: mean={np.mean(result)}, std={np.std(result)}')
 
-    model = ShallowNeuralNetwork(method='BFGS')
+    model = ShallowNeuralNetwork(method='L-BFGS-B')
     result = stratified_k_fold(model, metric, X, y)
-    print(f'simpleml BFGS: mean={np.mean(result)}, std={np.std(result)}')
+    print(f'simpleml L-BFGS-B: mean={np.mean(result)}, std={np.std(result)}')
+
+    model = MLPClassifier(hidden_layer_sizes=(25,), activation='logistic', 
+                          solver='sgd', alpha=0.0, learning_rate='constant', 
+                          learning_rate_init=1e-3, max_iter=int(1e2), tol=1e-3)
+    result = stratified_k_fold(model, metric, X, y)
+    print(f'sklearn SGD: mean={np.mean(result)}, std={np.std(result)}')
     
-    model = MLPClassifier(hidden_layer_sizes=(25,), solver='sgd', 
-                          learning_rate='constant', activation='logistic', 
-                          learning_rate_init=1e-3, max_iter=int(1e3), alpha=0.0)
+    model = MLPClassifier(hidden_layer_sizes=(25,), activation='logistic', 
+                          solver='lbfgs', alpha=0.0, learning_rate='constant', 
+                          learning_rate_init=1e-3, max_iter=int(1e2), tol=1e-3)
     result = stratified_k_fold(model, metric, X, y)
-    print(f'sklearn: mean={np.mean(result)}, std={np.std(result)}')
+    print(f'sklearn LBFGS: mean={np.mean(result)}, std={np.std(result)}')
 
 
 def test_gaussian_naive_bayes_classifier():
@@ -455,28 +461,28 @@ def test_random_forest_classifier():
 
 if __name__ == '__main__':
     tests = [
-             test_linear_regression, 
-             test_logistic_regression, 
-             test_KNN_classifier, 
-             test_KNN_regressor,
-             test_decision_tree_classifier, 
-             test_show_decision_tree, 
+             #test_linear_regression, 
+             #test_logistic_regression, 
+             #test_KNN_classifier, 
+             #test_KNN_regressor,
+             #test_decision_tree_classifier, 
+             #test_show_decision_tree, 
              test_shallow_neural_network, 
-             test_gaussian_naive_bayes_classifier, 
-             test_bernoulli_naive_bayes_classifier, 
-             test_multinomial_naive_bayes_classifier, 
-             test_kmeans_clustering,
-             test_principal_component_analysis, 
-             test_metrics, 
-             test_preprocessing, 
-             test_holdout,
-             test_stratified_k_fold, 
-             test_leave_one_out, 
-             test_bootstrap, 
-             test_one_vs_rest_classifier, 
-             test_voting_classifier, 
-             test_bagging_classifier, 
-             test_random_forest_classifier
+             #test_gaussian_naive_bayes_classifier, 
+             #test_bernoulli_naive_bayes_classifier, 
+             #test_multinomial_naive_bayes_classifier, 
+             #test_kmeans_clustering,
+             #test_principal_component_analysis, 
+             #test_metrics, 
+             #test_preprocessing, 
+             #test_holdout,
+             #test_stratified_k_fold, 
+             #test_leave_one_out, 
+             #test_bootstrap, 
+             #test_one_vs_rest_classifier, 
+             #test_voting_classifier, 
+             #test_bagging_classifier, 
+             #test_random_forest_classifier
             ]
 
     for test in tests:
