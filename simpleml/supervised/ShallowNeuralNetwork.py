@@ -97,6 +97,16 @@ class ShallowNeuralNetwork:
             y_pred[i] = np.argmax(activations[-1])
         return y_pred
 
+    def predict_proba(self, X):
+        n_samples = X.shape[0]
+        y_pred = []
+
+        for i in range(n_samples):
+            x = X[i, :]
+            activations, _ = self._forward_pass(x, self.theta1, self.theta2)
+            y_pred.append(activations[-1])
+        return np.array(y_pred)
+
     def _forward_pass(self, x, theta1, theta2):
         input_l0 = x
         activation_l0 = np.hstack((1, x))

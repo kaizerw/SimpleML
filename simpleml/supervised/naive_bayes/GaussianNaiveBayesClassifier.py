@@ -65,6 +65,31 @@ class GaussianNaiveBayesClassifier:
 
         return y_pred
 
+    def predict_proba(self, X):
+        n_samples_test = X.shape[0]
+        y_pred = []
+
+        for i in range(n_samples_test):
+            posteriori_probs = np.ones(self.n_classes)
+            for classe in self.classes:
+                for feature in range(self.n_features):
+                    x = X[i, feature]
+                    # Conditional probability
+                    if X[:, feature].dtype == 'float64':
+                        mu = self.mu[classe, feature]
+                        sigma = self.sigma[classe, feature]
+                        prob = self._gaussian(x, mu, sigma)
+                    elif X[:, feature].dtype == 'int64':
+                        prob = self.conditional_probs[classe, feature, x]
+                    posteriori_probs[classe] *= prob
+
+                # A posteriori probability
+                posteriori_probs[classe] *= self.priori_probs[classe]
+
+            y_pred.append(posteriori_probs)
+
+        return np.array(y_pred)
+
     def _gaussian(self, x, mu, sigma):
         return ((1 / np.sqrt(2 * np.pi * sigma ** 2)) *
                 np.exp(-((x - mu) ** 2 / (2 * sigma ** 2))))

@@ -48,3 +48,22 @@ class MultinomialNaiveBayesClassifier:
             y_pred[i] = np.argmax(posteriori_probs)
         
         return y_pred
+
+    def predict_proba(self, X):
+        n_samples_test = X.shape[0]
+        y_pred = []
+
+        for i in range(n_samples_test):
+            posteriori_probs = np.ones(self.n_classes)
+            for classe in self.classes:
+                for feature in range(self.n_features):
+                    if X[i, feature] > 0:
+                        prob = self.conditional_probs[classe, feature]
+                        posteriori_probs[classe] *= prob
+                
+                # A posteriori probability
+                posteriori_probs[classe] *= self.priori_probs[classe]
+            
+            y_pred.append(posteriori_probs)
+
+        return np.array(y_pred)

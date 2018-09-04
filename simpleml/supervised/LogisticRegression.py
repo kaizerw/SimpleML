@@ -56,6 +56,11 @@ class LogisticRegression:
     def predict(self, X):
         return np.where(self._activation(X, self.theta) >= self.threshold, 1, 0)
 
+    def predict_proba(self, X):
+        pos = np.reshape(self._activation(X, self.theta), (-1, 1))
+        neg = 1 - pos
+        return np.hstack((neg, pos))
+
     def _gradient(self, theta, X, y_true, lambd):
         n_samples = X.shape[0]
         y_pred = self._activation(X, theta)
