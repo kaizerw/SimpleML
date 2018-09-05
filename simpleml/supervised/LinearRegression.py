@@ -13,18 +13,20 @@ class LinearRegression:
         self.method = method # Method to be used to optimize cost function
 
     def fit(self, X, y):
-        n_samples, n_features = X.shape
-        X = np.hstack((np.ones((n_samples, 1)), X))
-        self.theta = np.zeros(n_features + 1)
-        self.costs = []
+        n = X.shape[1]
+        self.w = np.zeros(n)
+        self.b = 0
 
         if self.method == 'batch_gradient_descent':
             for _ in range(self.max_iter):
-                grad = self._gradient(self.theta, X, y, self.lambd)
-                self.theta -= self.alpha * grad
+                params = np.concatenate((self.w, [self.b]))
 
-                cost = self._cost(self.theta, X, y, self.lambd)
-                self.costs.append(cost)
+                d = self._gradient(params, X, y, self.lambd)
+                dw, db = d[:-1], d[-1]
+                self.w -= self.alpha * dw
+                self.b -= self.alpha * db
+
+                cost = self._cost(params, X, y, self.lambd)
 
                 if cost <= self.tol:
                     break
@@ -32,34 +34,35 @@ class LinearRegression:
         else:
             options = {'gtol': self.tol, 'maxiter': self.max_iter}
             args = (X, y, self.lambd)
-            res = minimize(self._cost, self.theta, 
+            params = np.concatenate((self.w, [self.b]))
+            res = minimize(self._cost, params, 
                            jac=self._gradient, args=args, 
                            method=self.method, options=options)
-            self.theta = res.x
+            self.w, self.b = res.x[:-1], res.x[-1]
 
         return self
 
-    def _activation(self, X, theta):
-        return X @ theta
+    def _activation(self, X, w, b):
+        return (X @ w) + b
 
     def predict(self, X):
-        n_samples_test = X.shape[0]
-        if X.shape[1] != self.theta.shape[0]:
-            X = np.hstack((np.ones((n_samples_test, 1)), X))
-        return self._activation(X, self.theta)
+        return self._activation(X, self.w, self.b)
 
-    def _gradient(self, theta, X, y_true, lambd):
-        n_samples = X.shape[0]
-        y_pred = self._activation(X, theta)
+    def _gradient(self, params, X, y_true, lambd):
+        w, b = params[:-1], params[-1]
+        m = X.shape[0]
+        y_pred = self._activation(X, w, b)
         error = y_pred - y_true
-        grad = (1 / n_samples) * sum((error * X.T).T)
-        grad[1:] += ((lambd / n_samples) * sum(theta[1:]))
-        return grad
+        dw = (1 / m) * sum((error * X.T).T)
+        db = (1 / m) * sum(error)
+        dw += ((lambd / m) * sum(w))
+        return np.concatenate((dw, [db]))
 
-    def _cost(self, theta, X, y_true, lambd):
-        n_samples = X.shape[0]
-        y_pred = self._activation(X, theta)
+    def _cost(self, params, X, y_true, lambd):
+        w, b = params[:-1], params[-1]
+        m = X.shape[0]
+        y_pred = self._activation(X, w, b)
         error = y_pred - y_true
-        cost = (1 / (2 * n_samples)) * sum(error ** 2)
-        cost += ((lambd / (2 * n_samples)) * sum(theta[1:]))
+        cost = (1 / (2 * m)) * sum(error ** 2)
+        cost += ((lambd / (2 * m)) * sum(w))
         return cost

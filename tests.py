@@ -30,7 +30,7 @@ def test_linear_regression():
 
     X = StandardScaler().fit(X).transform(X)
 
-    metric = mean_squared_error
+    metric = r2_score
 
     model = LinearRegression()
     result = bootstrap(model, metric, X, y)
