@@ -52,8 +52,8 @@ class LinearRegression:
     def __gradient(self, params, X, y, lambd):
         w, b = params[:-1], params[-1]
         m = X.shape[0]
-        z = self.__activation(X, w, b)
-        dz = z - y
+        a = self.__activation(X, w, b)
+        dz = a - y
         dw = (1 / m) * sum((dz * X.T).T)
         db = (1 / m) * sum(dz)
         dw += ((lambd / m) * sum(w))
@@ -62,8 +62,8 @@ class LinearRegression:
     def __cost(self, params, X, y, lambd):
         w, b = params[:-1], params[-1]
         m = X.shape[0]
-        z = self.__activation(X, w, b)
-        dz = z - y
+        a = self.__activation(X, w, b)
+        dz = a - y
         cost = (1 / (2 * m)) * sum(dz ** 2)
         cost += ((lambd / (2 * m)) * sum(w))
         return cost

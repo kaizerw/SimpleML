@@ -64,21 +64,21 @@ class LogisticRegression:
         neg = 1 - pos
         return np.hstack((neg, pos))
 
-    def __gradient(self, params, X, y_true, lambd):
+    def __gradient(self, params, X, y, lambd):
         w, b = params[:-1], params[-1]
         m = X.shape[0]
-        z = self.__activation(X, w, b)
-        dz = z - y_true
+        a = self.__activation(X, w, b)
+        dz = a - y
         dw = (1 / m) * sum((dz * X.T).T)
         db = (1 / m) * sum(dz)
         dw += (lambd / m) * w
         return np.concatenate((dw, [db]))
 
-    def __cost(self, params, X, y_true, lambd):
+    def __cost(self, params, X, y, lambd):
         w, b = params[:-1], params[-1]
         m = X.shape[0]
-        z = self.__activation(X, w, b)
-        dz = -y_true * np.log(z) - (1 - y_true) * np.log(1 - z)
+        a = self.__activation(X, w, b)
+        dz = -y * np.log(a) - (1 - y) * np.log(1 - a)
         cost = (1 / m) * sum(dz)
         cost += (lambd / (2 * m)) * sum(w ** 2)
         return cost
