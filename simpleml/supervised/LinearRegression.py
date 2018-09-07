@@ -5,7 +5,7 @@ from scipy.optimize import minimize
 class LinearRegression:
 
     def __init__(self, alpha=1e-3, max_iter=1e4, tol=1e-4, lambd=0, 
-                 method='batch__gradient_descent'):
+                 method='batch_gradient_descent'):
         self.alpha = alpha # Learning rate
         self.max_iter = int(max_iter) # Max iterations
         self.tol = tol # Error tolerance
@@ -17,7 +17,7 @@ class LinearRegression:
         self.w = np.zeros(n)
         self.b = 0
 
-        if self.method == 'batch__gradient_descent':
+        if self.method == 'batch_gradient_descent':
             for _ in range(self.max_iter):
                 params = np.concatenate((self.w, [self.b]))
 

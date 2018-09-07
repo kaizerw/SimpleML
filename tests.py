@@ -161,13 +161,13 @@ def test_shallow_neural_network():
 
     model = MLPClassifier(hidden_layer_sizes=(25,), activation='logistic', 
                           solver='sgd', alpha=0.0, learning_rate='constant', 
-                          learning_rate_init=1e-3, max_iter=int(1e2), tol=1e-3)
+                          learning_rate_init=1e-5, max_iter=int(1e4), tol=1e-3)
     result = stratified_k_fold(model, metric, X, y)
     print(f'sklearn SGD: mean={np.mean(result)}, std={np.std(result)}')
     
     model = MLPClassifier(hidden_layer_sizes=(25,), activation='logistic', 
                           solver='lbfgs', alpha=0.0, learning_rate='constant', 
-                          learning_rate_init=1e-3, max_iter=int(1e2), tol=1e-3)
+                          learning_rate_init=1e-5, max_iter=int(1e4), tol=1e-3)
     result = stratified_k_fold(model, metric, X, y)
     print(f'sklearn LBFGS: mean={np.mean(result)}, std={np.std(result)}')
 
@@ -461,13 +461,13 @@ def test_random_forest_classifier():
 
 if __name__ == '__main__':
     tests = [
-             test_linear_regression, 
-             test_logistic_regression, 
+             #test_linear_regression, 
+             #test_logistic_regression, 
              #test_KNN_classifier, 
              #test_KNN_regressor,
              #test_decision_tree_classifier, 
              #test_show_decision_tree, 
-             #test_shallow_neural_network, 
+             test_shallow_neural_network, 
              #test_gaussian_naive_bayes_classifier, 
              #test_bernoulli_naive_bayes_classifier, 
              #test_multinomial_naive_bayes_classifier, 
