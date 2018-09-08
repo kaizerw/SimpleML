@@ -19,8 +19,7 @@ class LogisticRegression:
 
         n = X.shape[1]
         
-        self.w = np.zeros(n)
-        self.b = 0
+        self.w, self.b = np.zeros(n), 0
 
         if self.method == 'batch_gradient_descent':
             for _ in range(self.max_iter):
@@ -41,18 +40,17 @@ class LogisticRegression:
             options = {'gtol': self.tol, 'maxiter': self.max_iter}
             args = (X, y, self.lambd)
             params = np.concatenate((self.w, [self.b]))
-            res = minimize(self.__cost, params, 
-                           jac=self.__gradient, args=args, 
+            res = minimize(self.__cost, params, jac=self.__gradient, args=args, 
                            method=self.method, options=options)
             self.w, self.b = res.x[:-1], res.x[-1]
 
         return self
 
-    def _sigmoid(self, z):
+    def __sigmoid(self, z):
         return 1 / (1 + np.exp(-z))
 
     def __activation(self, X, w, b):
-        return self._sigmoid(X @ w + b)
+        return self.__sigmoid(X @ w + b)
 
     def predict(self, X):
         activation = self.__activation(X, self.w, self.b)

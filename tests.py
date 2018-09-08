@@ -151,23 +151,24 @@ def test_shallow_neural_network():
 
     metric = f1_score
 
-    model = ShallowNeuralNetwork()
+    model = ShallowNeuralNetwork(alpha=1e-3, max_iter=1e4, activation='relu')
     result = stratified_k_fold(model, metric, X, y)
     print(f'simpleml BGD: mean={np.mean(result)}, std={np.std(result)}')
 
-    model = ShallowNeuralNetwork(method='L-BFGS-B')
+    model = ShallowNeuralNetwork(alpha=1e-3, max_iter=1e4, activation='relu', 
+                                 method='L-BFGS-B')
     result = stratified_k_fold(model, metric, X, y)
     print(f'simpleml L-BFGS-B: mean={np.mean(result)}, std={np.std(result)}')
 
-    model = MLPClassifier(hidden_layer_sizes=(25,), activation='logistic', 
+    model = MLPClassifier(hidden_layer_sizes=(25,), activation='relu', 
                           solver='sgd', alpha=0.0, learning_rate='constant', 
-                          learning_rate_init=1e-5, max_iter=int(1e4), tol=1e-3)
+                          learning_rate_init=1e-3, max_iter=int(1e4), tol=1e-3)
     result = stratified_k_fold(model, metric, X, y)
     print(f'sklearn SGD: mean={np.mean(result)}, std={np.std(result)}')
     
-    model = MLPClassifier(hidden_layer_sizes=(25,), activation='logistic', 
+    model = MLPClassifier(hidden_layer_sizes=(25,), activation='relu', 
                           solver='lbfgs', alpha=0.0, learning_rate='constant', 
-                          learning_rate_init=1e-5, max_iter=int(1e4), tol=1e-3)
+                          learning_rate_init=1e-3, max_iter=int(1e4), tol=1e-3)
     result = stratified_k_fold(model, metric, X, y)
     print(f'sklearn LBFGS: mean={np.mean(result)}, std={np.std(result)}')
 
@@ -228,19 +229,20 @@ def test_multinomial_naive_bayes_classifier():
 
 
 def test_kmeans_clustering():
-    X, _ = make_blobs(n_samples=500, n_features=5, centers=2)
+    X, _ = make_blobs(n_samples=500, n_features=5, centers=3)
 
     X = StandardScaler().fit(X).transform(X)
 
-    model = KMeansClustering(k=2)
+    model = KMeansClustering(k=3)
     model.fit(X)
     y_pred = model.predict(X)
 
     centroids = model.centroids
 
-    plt.title('KMeans clustering with k=2')
+    plt.title('KMeans clustering with k=3')
     plt.scatter(X[y_pred==0, 0], X[y_pred==0, 1], c='r', alpha=0.5)
     plt.scatter(X[y_pred==1, 0], X[y_pred==1, 1], c='g', alpha=0.5)
+    plt.scatter(X[y_pred==2, 0], X[y_pred==2, 1], c='b', alpha=0.5)
     plt.scatter(centroids[:, 0], centroids[:, 1], marker='o', s=120, c='k')
     plt.show()
 
@@ -461,28 +463,28 @@ def test_random_forest_classifier():
 
 if __name__ == '__main__':
     tests = [
-             #test_linear_regression, 
-             #test_logistic_regression, 
-             #test_KNN_classifier, 
-             #test_KNN_regressor,
-             #test_decision_tree_classifier, 
-             #test_show_decision_tree, 
+             test_linear_regression, 
+             test_logistic_regression, 
+             test_KNN_classifier, 
+             test_KNN_regressor,
+             test_decision_tree_classifier, 
+             test_show_decision_tree, 
              test_shallow_neural_network, 
-             #test_gaussian_naive_bayes_classifier, 
-             #test_bernoulli_naive_bayes_classifier, 
-             #test_multinomial_naive_bayes_classifier, 
-             #test_kmeans_clustering,
-             #test_principal_component_analysis, 
-             #test_metrics, 
-             #test_preprocessing, 
-             #test_holdout,
-             #test_stratified_k_fold, 
-             #test_leave_one_out, 
-             #test_bootstrap, 
-             #est_one_vs_rest_classifier, 
-             #test_voting_classifier, 
-             #test_bagging_classifier, 
-             #test_random_forest_classifier
+             test_gaussian_naive_bayes_classifier, 
+             test_bernoulli_naive_bayes_classifier, 
+             test_multinomial_naive_bayes_classifier, 
+             test_kmeans_clustering,
+             test_principal_component_analysis, 
+             test_metrics, 
+             test_preprocessing, 
+             test_holdout,
+             test_stratified_k_fold, 
+             test_leave_one_out, 
+             test_bootstrap, 
+             test_one_vs_rest_classifier, 
+             test_voting_classifier, 
+             test_bagging_classifier, 
+             test_random_forest_classifier
             ]
 
     for test in tests:
