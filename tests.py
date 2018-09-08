@@ -270,6 +270,7 @@ def test_metrics():
     model = SKLogisticRegression()
     model.fit(X, y)
     y_pred = model.predict(X)
+    y_proba = model.predict_proba(X)[:, 1]
     y_true = y
 
     print('Confusion Matrix:', confusion_matrix(y_true, y_pred) == 
@@ -297,6 +298,11 @@ def test_metrics():
                         metrics.precision_score(y_true, y_pred, average=None))
     print('Delta All F1-score:', f1_score(y_true, y_pred, kind='all') - 
                                 metrics.f1_score(y_true, y_pred, average=None))
+
+    print('Delta log loss:', log_loss_score(y_true, y_proba) - 
+                             metrics.log_loss(y_true, y_proba))
+    print('Delta zero one loss:', zero_one_loss(y_true, y_true) - 
+                                  metrics.zero_one_loss(y_true, y_true))
 
     print('*' * 80)
 

@@ -38,7 +38,7 @@ def recall(y_true, y_pred, kind='macro'):
     
     if kind == 'macro':
         return np.mean(recalls)
-    elif kind =='all':
+    elif kind == 'all':
         return np.array(recalls)
 
 
@@ -61,7 +61,7 @@ def precision(y_true, y_pred, kind='macro'):
     
     if kind == 'macro':
         return np.mean(precisions)
-    elif kind =='all':
+    elif kind == 'all':
         return np.array(precisions)
 
 
@@ -94,3 +94,13 @@ def r2_score(y_true, y_pred):
     ss_res = sum((y_true - y_pred) ** 2) + 1e-10
 
     return 1 - (ss_res / ss_tot)
+
+
+def log_loss_score(y_true, y_pred):
+    n = y_true.shape[0]
+    return -(1 / n) * (np.sum(y_true * np.log(y_pred) + 
+                              (1 - y_true) * np.log(1 - y_pred)))
+
+
+def zero_one_loss(y_true, y_pred):
+    return sum(y_true != y_pred)
