@@ -28,8 +28,7 @@ class ShallowNeuralNetwork:
 
         y = y.reshape((-1, 1))
 
-        n_in = X.shape[1]
-        n_out = 1
+        n_in, n_out = X.shape[1], 1
         
         self.W1 = np.random.randn(n_in, self.n_hid) * 1e-2
         self.b1 = np.zeros(self.n_hid)
@@ -105,12 +104,12 @@ class ShallowNeuralNetwork:
 
     def predict(self, X):   
         Z1, A1, Z2, A2 = self.__forward_pass(X, self.W1, self.b1, 
-                                           self.W2, self.b2)
+                                             self.W2, self.b2)
         return np.where(A2 > 0.5, 1, 0).reshape(-1)
 
     def predict_proba(self, X):
         Z1, A1, Z2, A2 = self.__forward_pass(X, self.W1, self.b1, 
-                                           self.W2, self.b2)
+                                             self.W2, self.b2)
         return A2.reshape(-1)
 
     def __forward_pass(self, X, W1, b1, W2, b2):
@@ -143,8 +142,8 @@ class ShallowNeuralNetwork:
         dW1, db1, dW2, db2 = self.__backward_pass(Z1, A1, W1, Z2, A2, W2, X, y)        
 
         # Regularization
-        dW1[:, 1:] += (lambd / m) * W1[:, 1:]
-        dW2[:, 1:] += (lambd / m) * W2[:, 1:]
+        dW1 += (lambd / m) * W1
+        dW2 += (lambd / m) * W2
 
         return self.__zip_params(dW1, db1, dW2, db2)
 

@@ -4,4 +4,5 @@ from .DecisionTreeClassifier import DecisionTreeClassifier
 from .KNNClassifier import KNNClassifier
 from .KNNRegressor import KNNRegressor
 from .ShallowNeuralNetwork import ShallowNeuralNetwork
+from .DeepNeuralNetwork import DeepNeuralNetwork
 from .OneVsRestClassifier import OneVsRestClassifier

@@ -173,6 +173,37 @@ def test_shallow_neural_network():
     print(f'sklearn LBFGS: mean={np.mean(result)}, std={np.std(result)}')
 
 
+def test_deep_neural_network():
+    X, y = make_classification(n_samples=500, n_features=50, n_informative=50, 
+                               n_redundant=0, n_repeated=0, n_classes=2)
+
+    X = StandardScaler().fit(X).transform(X)
+
+    metric = f1_score
+
+    model = DeepNeuralNetwork(alpha=1e-3, max_iter=1e4, n_hid=(10, 5, 2), 
+                              activation='relu')
+    result = stratified_k_fold(model, metric, X, y)
+    print(f'simpleml BGD: mean={np.mean(result)}, std={np.std(result)}')
+
+    model = DeepNeuralNetwork(alpha=1e-3, max_iter=1e4, n_hid=(10, 5, 2), 
+                              activation='relu', method='L-BFGS-B')
+    result = stratified_k_fold(model, metric, X, y)
+    print(f'simpleml L-BFGS-B: mean={np.mean(result)}, std={np.std(result)}')
+
+    model = MLPClassifier(hidden_layer_sizes=(10, 5, 2), activation='relu', 
+                          solver='sgd', alpha=0.0, learning_rate='constant', 
+                          learning_rate_init=1e-3, max_iter=int(1e4), tol=1e-3)
+    result = stratified_k_fold(model, metric, X, y)
+    print(f'sklearn SGD: mean={np.mean(result)}, std={np.std(result)}')
+    
+    model = MLPClassifier(hidden_layer_sizes=(10, 5, 2), activation='relu', 
+                          solver='lbfgs', alpha=0.0, learning_rate='constant', 
+                          learning_rate_init=1e-3, max_iter=int(1e4), tol=1e-3)
+    result = stratified_k_fold(model, metric, X, y)
+    print(f'sklearn LBFGS: mean={np.mean(result)}, std={np.std(result)}')
+
+
 def test_gaussian_naive_bayes_classifier():
     X, y = make_classification(n_samples=500, n_features=5, n_informative=5, 
                                n_redundant=0, n_repeated=0, n_classes=2)
@@ -476,6 +507,7 @@ if __name__ == '__main__':
              test_decision_tree_classifier, 
              test_show_decision_tree, 
              test_shallow_neural_network, 
+             test_deep_neural_network, 
              test_gaussian_naive_bayes_classifier, 
              test_bernoulli_naive_bayes_classifier, 
              test_multinomial_naive_bayes_classifier, 
