@@ -5,11 +5,12 @@ from scipy.optimize import minimize
 class DeepNeuralNetwork:
 
     def __init__(self, alpha=1e-5, max_iter=1e4, tol=1e-3, n_hid=(10, 5), 
-                 activation='relu', method='batch_gradient_descent'):
+                 lambd=0, activation='relu', method='batch_gradient_descent'):
         self.alpha = alpha # Learning rate
         self.max_iter = int(max_iter) # Max iterations
         self.tol = tol # Error tolerance
         self.n_hid = n_hid # Number of neurons in hidden layers
+        self.lambd = lambd # Regularization constant
         self.method = method # Method to be used to optimize cost function
         if activation == 'sigmoid':
             self.activation_hidden = self.__sigmoid
@@ -51,21 +52,21 @@ class DeepNeuralNetwork:
             for _ in range(self.max_iter):
                 params = self.__zip_params(self.W, self.b, self.L)
                 
-                d = self.__gradient(params, X, y, self.n_layers, self.L)
+                d = self.__gradient(params, X, y, self.n_layers, self.L, self.lambd)
                 dW, db = self.__unzip_params(d, self.n_layers, self.L)
                 
                 for l in range(1, self.L + 1):
                     self.W[l] -= self.alpha * dW[l]
                     self.b[l] -= self.alpha * db[l]
                 
-                cost = self.__cost(params, X, y, self.n_layers, self.L)
+                cost = self.__cost(params, X, y, self.n_layers, self.L, self.lambd)
 
                 if cost <= self.tol:
                     break
 
         else:
             options = {'gtol': self.tol, 'maxiter': self.max_iter}
-            args = (X, y, self.n_layers, self.L)
+            args = (X, y, self.n_layers, self.L, self.lambd)
             params = self.__zip_params(self.W, self.b, self.L)
             res = minimize(self.__cost, params, jac=self.__gradient, args=args, 
                            method=self.method, options=options)
@@ -137,7 +138,7 @@ class DeepNeuralNetwork:
         
         return Zs, As
 
-    def __backward_pass(self, Zs, As, W, L, X, y):
+    def __backward_pass(self, Zs, As, W, L, X, y, lambd):
         m = X.shape[0]
 
         dA = As[-1] - y
@@ -147,20 +148,21 @@ class DeepNeuralNetwork:
             dZ = dA * self.gradients[l](Zs[l])
 
             dW[l] = (1 / m) * As[l - 1].T @ dZ
+            dW[l] += (lambd / m) * W[l]
             db[l] = (1 / m) * np.sum(dZ, axis=0)
             dA = dZ @ W[l].T
         
         return dW, db
 
-    def __gradient(self, params, X, y, n_layers, L):
+    def __gradient(self, params, X, y, n_layers, L, lambd):
         W, b = self.__unzip_params(params, n_layers, L)
 
         Zs, As = self.__forward_pass(X, W, b, L)
-        dW, db = self.__backward_pass(Zs, As, W, L, X, y)
+        dW, db = self.__backward_pass(Zs, As, W, L, X, y, lambd)
 
         return self.__zip_params(dW, db, L)
 
-    def __cost(self, params, X, y, n_layers, L):
+    def __cost(self, params, X, y, n_layers, L, lambd):
         W, b = self.__unzip_params(params, n_layers, L)
         m = X.shape[0]
 
@@ -168,4 +170,6 @@ class DeepNeuralNetwork:
         A_last = As[-1]
         cost = np.sum(y * np.log(A_last) + (1 - y) * np.log(1 - A_last))
         cost *= -(1 / m)
+        for l in range(1, L + 1):
+            cost += ((lambd / (2 * m))) * sum(sum(W[l] ** 2))
         return cost
