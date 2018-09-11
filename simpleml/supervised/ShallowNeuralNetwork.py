@@ -30,9 +30,10 @@ class ShallowNeuralNetwork:
 
         n_in, n_out = X.shape[1], 1
         
-        self.W1 = np.random.randn(n_in, self.n_hid) * 1e-2
+        # He initialization
+        self.W1 = np.random.randn(n_in, self.n_hid) * np.sqrt(2 / n_in)
         self.b1 = np.zeros(self.n_hid)
-        self.W2 = np.random.randn(self.n_hid, n_out) * 1e-2
+        self.W2 = np.random.randn(self.n_hid, n_out) * np.sqrt(2 / self.n_hid)
         self.b2 = np.zeros(n_out)
 
         if self.method == 'batch_gradient_descent':

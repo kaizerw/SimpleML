@@ -37,7 +37,8 @@ class DeepNeuralNetwork:
 
         self.W, self.b = {}, {}
         for l in range(1, self.L + 1):
-            self.W[l] = np.random.randn(self.n_layers[l - 1], self.n_layers[l]) * 1e-2
+            # He initialization
+            self.W[l] = np.random.randn(self.n_layers[l - 1], self.n_layers[l]) * np.sqrt(2 / self.n_layers[l - 1])
             self.b[l] = np.zeros(self.n_layers[l])
 
         self.activations = {}
