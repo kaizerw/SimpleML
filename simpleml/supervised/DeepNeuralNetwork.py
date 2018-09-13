@@ -5,14 +5,15 @@ from scipy.optimize import minimize
 class DeepNeuralNetwork:
 
     def __init__(self, alpha=1e-5, max_iter=1e4, tol=1e-3, n_hid=(10, 5), 
-                 lambd=0, beta=0.9, activation='relu', 
+                 lambd=0, beta1=0.9, beta2=0.999, activation='relu', 
                  method='batch_gradient_descent'):
         self.alpha = alpha # Learning rate
         self.max_iter = int(max_iter) # Max iterations
         self.tol = tol # Error tolerance
         self.n_hid = n_hid # Number of neurons in hidden layers
         self.lambd = lambd # Regularization constant
-        self.beta = beta # Momentum constant
+        self.beta1 = beta1 # Momentum constant
+        self.beta2 = beta2 # RMSprop constant
         self.method = method # Method to be used to optimize cost function
         if activation == 'sigmoid':
             self.activation_hidden = self.__sigmoid
@@ -52,12 +53,15 @@ class DeepNeuralNetwork:
         self.gradients[self.L] = self.__sigmoid_gradient
 
         if self.method == 'batch_gradient_descent':
-            VdW, Vdb = {}, {}
+            VdW, Vdb, VdW_c, Vdb_c = {}, {}, {}, {}
+            SdW, Sdb, SdW_c, Sdb_c = {}, {}, {}, {}
             for l in range(1, self.L + 1):
                 VdW[l] = np.zeros(self.W[l].shape)
                 Vdb[l] = np.zeros(self.b[l].shape)
+                SdW[l] = np.zeros(self.W[l].shape)
+                Sdb[l] = np.zeros(self.b[l].shape)
 
-            for _ in range(self.max_iter):
+            for t in range(1, self.max_iter + 1):
                 params = self.__zip_params(self.W, self.b, self.L)
                 
                 d = self.__gradient(params, X, y, self.n_layers, self.L, self.lambd)
@@ -65,10 +69,21 @@ class DeepNeuralNetwork:
                 
                 for l in range(1, self.L + 1):
                     # Momentum
-                    VdW[l] = self.beta * VdW[l] + (1 - self.beta) * dW[l]
-                    Vdb[l] = self.beta * Vdb[l] + (1 - self.beta) * db[l]
-                    self.W[l] -= self.alpha * VdW[l]
-                    self.b[l] -= self.alpha * Vdb[l]
+                    VdW[l] = self.beta1 * VdW[l] + (1 - self.beta1) * dW[l]
+                    Vdb[l] = self.beta1 * Vdb[l] + (1 - self.beta1) * db[l]
+
+                    VdW_c[l] = VdW[l] / (1 - self.beta1 ** t)
+                    Vdb_c[l] = Vdb[l] / (1 - self.beta1 ** t)
+
+                    # RMSprop
+                    SdW[l] = self.beta2 * SdW[l] + (1 - self.beta2) * dW[l] ** 2
+                    Sdb[l] = self.beta2 * Sdb[l] + (1 - self.beta2) * db[l] ** 2
+
+                    SdW_c[l] = SdW[l] / (1 - self.beta2 ** t)
+                    Sdb_c[l] = Sdb[l] / (1 - self.beta2 ** t)
+
+                    self.W[l] -= self.alpha * (VdW_c[l] / (np.sqrt(SdW_c[l] + 1e-8)))
+                    self.b[l] -= self.alpha * (Vdb_c[l] / (np.sqrt(Sdb_c[l] + 1e-8)))
                 
                 cost = self.__cost(params, X, y, self.n_layers, self.L, self.lambd)
 

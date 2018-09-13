@@ -5,13 +5,15 @@ from scipy.optimize import minimize
 class ShallowNeuralNetwork:
 
     def __init__(self, alpha=1e-5, max_iter=1e4, tol=1e-3, n_hid=25, lambd=0, 
-                 beta=0.9, activation='relu', method='batch_gradient_descent'):
+                 beta1=0.9, beta2=0.999, activation='relu', 
+                 method='batch_gradient_descent'):
         self.alpha = alpha # Learning rate
         self.max_iter = int(max_iter) # Max iterations
         self.tol = tol # Error tolerance
         self.n_hid = n_hid # Number of neurons in the hidden layer
         self.lambd = lambd # Regularization constant
-        self.beta = beta # Momentum constant
+        self.beta1 = beta1 # Momentum constant
+        self.beta2 = beta2 # RMSprop constant
         self.method = method # Method to be used to optimize cost function
         if activation == 'sigmoid':
             self.activation = self.__sigmoid
@@ -43,7 +45,12 @@ class ShallowNeuralNetwork:
             VdW2 = np.zeros(self.W2.shape)
             Vdb2 = np.zeros(self.b2.shape)
 
-            for _ in range(self.max_iter):
+            SdW1 = np.zeros(self.W1.shape)
+            Sdb1 = np.zeros(self.b1.shape)
+            SdW2 = np.zeros(self.W2.shape)
+            Sdb2 = np.zeros(self.b2.shape)
+
+            for t in range(1, self.max_iter + 1):
                 params = self.__zip_params(self.W1, self.b1, self.W2, self.b2)
                 
                 d = self.__gradient(params, X, y, self.lambd, 
@@ -51,15 +58,31 @@ class ShallowNeuralNetwork:
                 dW1, db1, dW2, db2 = self.__unzip_params(d, n_in, 
                                                          self.n_hid, n_out)
                 # Momentum
-                VdW1 = self.beta * VdW1 + (1 - self.beta) * dW1
-                Vdb1 = self.beta * Vdb1 + (1 - self.beta) * db1
-                VdW2 = self.beta * VdW2 + (1 - self.beta) * dW2
-                Vdb2 = self.beta * Vdb2 + (1 - self.beta) * db2
+                VdW1 = self.beta1 * VdW1 + (1 - self.beta1) * dW1
+                Vdb1 = self.beta1 * Vdb1 + (1 - self.beta1) * db1
+                VdW2 = self.beta1 * VdW2 + (1 - self.beta1) * dW2
+                Vdb2 = self.beta1 * Vdb2 + (1 - self.beta1) * db2
 
-                self.W1 -= self.alpha * VdW1
-                self.b1 -= self.alpha * Vdb1
-                self.W2 -= self.alpha * VdW2
-                self.b2 -= self.alpha * Vdb2
+                VdW1_c = VdW1 / (1 - self.beta1 ** t)
+                Vdb1_c = Vdb1 / (1 - self.beta1 ** t)
+                VdW2_c = VdW2 / (1 - self.beta1 ** t)
+                Vdb2_c = Vdb2 / (1 - self.beta1 ** t)
+
+                # RMSprop
+                SdW1 = self.beta2 * SdW1 + (1 - self.beta2) * dW1 ** 2
+                Sdb1 = self.beta2 * Sdb1 + (1 - self.beta2) * db1 ** 2
+                SdW2 = self.beta2 * SdW2 + (1 - self.beta2) * dW2 ** 2
+                Sdb2 = self.beta2 * Sdb2 + (1 - self.beta2) * db2 ** 2
+
+                SdW1_c = SdW1 / (1 - self.beta2 ** t)
+                Sdb1_c = Sdb1 / (1 - self.beta2 ** t)
+                SdW2_c = SdW2 / (1 - self.beta2 ** t)
+                Sdb2_c = Sdb2 / (1 - self.beta2 ** t)
+
+                self.W1 -= self.alpha * (VdW1_c / (np.sqrt(SdW1_c) + 1e-8))
+                self.b1 -= self.alpha * (Vdb1_c / (np.sqrt(Sdb1_c) + 1e-8))
+                self.W2 -= self.alpha * (VdW2_c / (np.sqrt(SdW2_c) + 1e-8))
+                self.b2 -= self.alpha * (Vdb2_c / (np.sqrt(Sdb2_c) + 1e-8))
                 
                 cost = self.__cost(params, X, y, self.lambd, n_in, 
                                    self.n_hid, n_out)
