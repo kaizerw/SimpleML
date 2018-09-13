@@ -174,7 +174,7 @@ def test_shallow_neural_network():
 
 
 def test_deep_neural_network():
-    X, y = make_classification(n_samples=500, n_features=50, n_informative=50, 
+    X, y = make_classification(n_samples=500, n_features=5, n_informative=5, 
                                n_redundant=0, n_repeated=0, n_classes=2)
 
     X = StandardScaler().fit(X).transform(X)
@@ -501,13 +501,13 @@ def test_random_forest_classifier():
 if __name__ == '__main__':
     tests = [
              test_linear_regression, 
-             test_logistic_regression, 
+             test_logistic_regression,
+             test_shallow_neural_network, 
+             test_deep_neural_network,  
              test_KNN_classifier, 
              test_KNN_regressor,
              test_decision_tree_classifier, 
              test_show_decision_tree, 
-             test_shallow_neural_network, 
-             test_deep_neural_network, 
              test_gaussian_naive_bayes_classifier, 
              test_bernoulli_naive_bayes_classifier, 
              test_multinomial_naive_bayes_classifier, 

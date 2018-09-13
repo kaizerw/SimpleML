@@ -5,12 +5,13 @@ from scipy.optimize import minimize
 class ShallowNeuralNetwork:
 
     def __init__(self, alpha=1e-5, max_iter=1e4, tol=1e-3, n_hid=25, lambd=0, 
-                 activation='relu', method='batch_gradient_descent'):
+                 beta=0.9, activation='relu', method='batch_gradient_descent'):
         self.alpha = alpha # Learning rate
         self.max_iter = int(max_iter) # Max iterations
         self.tol = tol # Error tolerance
         self.n_hid = n_hid # Number of neurons in the hidden layer
         self.lambd = lambd # Regularization constant
+        self.beta = beta # Momentum constant
         self.method = method # Method to be used to optimize cost function
         if activation == 'sigmoid':
             self.activation = self.__sigmoid
@@ -37,6 +38,11 @@ class ShallowNeuralNetwork:
         self.b2 = np.zeros(n_out)
 
         if self.method == 'batch_gradient_descent':
+            VdW1 = np.zeros(self.W1.shape)
+            Vdb1 = np.zeros(self.b1.shape)
+            VdW2 = np.zeros(self.W2.shape)
+            Vdb2 = np.zeros(self.b2.shape)
+
             for _ in range(self.max_iter):
                 params = self.__zip_params(self.W1, self.b1, self.W2, self.b2)
                 
@@ -44,11 +50,16 @@ class ShallowNeuralNetwork:
                                     n_in, self.n_hid, n_out)
                 dW1, db1, dW2, db2 = self.__unzip_params(d, n_in, 
                                                          self.n_hid, n_out)
-                
-                self.W1 -= self.alpha * dW1
-                self.b1 -= self.alpha * db1
-                self.W2 -= self.alpha * dW2
-                self.b2 -= self.alpha * db2
+                # Momentum
+                VdW1 = self.beta * VdW1 + (1 - self.beta) * dW1
+                Vdb1 = self.beta * Vdb1 + (1 - self.beta) * db1
+                VdW2 = self.beta * VdW2 + (1 - self.beta) * dW2
+                Vdb2 = self.beta * Vdb2 + (1 - self.beta) * db2
+
+                self.W1 -= self.alpha * VdW1
+                self.b1 -= self.alpha * Vdb1
+                self.W2 -= self.alpha * VdW2
+                self.b2 -= self.alpha * Vdb2
                 
                 cost = self.__cost(params, X, y, self.lambd, n_in, 
                                    self.n_hid, n_out)

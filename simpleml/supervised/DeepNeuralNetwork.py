@@ -5,12 +5,14 @@ from scipy.optimize import minimize
 class DeepNeuralNetwork:
 
     def __init__(self, alpha=1e-5, max_iter=1e4, tol=1e-3, n_hid=(10, 5), 
-                 lambd=0, activation='relu', method='batch_gradient_descent'):
+                 lambd=0, beta=0.9, activation='relu', 
+                 method='batch_gradient_descent'):
         self.alpha = alpha # Learning rate
         self.max_iter = int(max_iter) # Max iterations
         self.tol = tol # Error tolerance
         self.n_hid = n_hid # Number of neurons in hidden layers
         self.lambd = lambd # Regularization constant
+        self.beta = beta # Momentum constant
         self.method = method # Method to be used to optimize cost function
         if activation == 'sigmoid':
             self.activation_hidden = self.__sigmoid
@@ -50,6 +52,11 @@ class DeepNeuralNetwork:
         self.gradients[self.L] = self.__sigmoid_gradient
 
         if self.method == 'batch_gradient_descent':
+            VdW, Vdb = {}, {}
+            for l in range(1, self.L + 1):
+                VdW[l] = np.zeros(self.W[l].shape)
+                Vdb[l] = np.zeros(self.b[l].shape)
+
             for _ in range(self.max_iter):
                 params = self.__zip_params(self.W, self.b, self.L)
                 
@@ -57,8 +64,11 @@ class DeepNeuralNetwork:
                 dW, db = self.__unzip_params(d, self.n_layers, self.L)
                 
                 for l in range(1, self.L + 1):
-                    self.W[l] -= self.alpha * dW[l]
-                    self.b[l] -= self.alpha * db[l]
+                    # Momentum
+                    VdW[l] = self.beta * VdW[l] + (1 - self.beta) * dW[l]
+                    Vdb[l] = self.beta * Vdb[l] + (1 - self.beta) * db[l]
+                    self.W[l] -= self.alpha * VdW[l]
+                    self.b[l] -= self.alpha * Vdb[l]
                 
                 cost = self.__cost(params, X, y, self.n_layers, self.L, self.lambd)
 
