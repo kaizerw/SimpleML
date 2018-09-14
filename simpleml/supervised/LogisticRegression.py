@@ -5,11 +5,14 @@ from scipy.optimize import minimize
 class LogisticRegression:
 
     def __init__(self, alpha=1e-3, max_iter=1e4, tol=1e-4, lambd=0, 
-                 threshold=0.5, method='batch_gradient_descent'):
+                 beta1=0.9, beta2=0.999, threshold=0.5, 
+                 method='batch_gradient_descent'):
         self.alpha = alpha # Learning rate
         self.max_iter = int(max_iter) # Max iterations
         self.tol = tol # Error tolerance
         self.lambd = lambd # Regularization constant
+        self.beta1 = beta1 # Momentum constant
+        self.beta2 = beta2 # RMSprop constant
         self.threshold = threshold # Threshold classification
         self.method = method # Method to be used to optimize cost function
 
@@ -19,17 +22,39 @@ class LogisticRegression:
 
         n = X.shape[1]
         
-        self.w, self.b = np.zeros(n), 0
+        # He initialization
+        self.w = np.random.randn(n) * np.sqrt(2 / n) 
+        self.b = 0
 
         if self.method == 'batch_gradient_descent':
-            for _ in range(self.max_iter):
+            VdW = np.zeros(self.w.shape)
+            Vdb = 0
+
+            SdW = np.zeros(self.w.shape)
+            Sdb = 0
+
+            for t in range(1, self.max_iter + 1):
                 params = np.concatenate((self.w, [self.b]))
 
                 d = self.__gradient(params, X, y, self.lambd)
                 dw, db = d[:-1], d[-1]
 
-                self.w -= self.alpha * dw
-                self.b -= self.alpha * db
+                # Momentum
+                VdW = self.beta1 * VdW + (1 - self.beta1) * dw
+                Vdb = self.beta1 * Vdb + (1 - self.beta1) * db
+
+                VdW_c = VdW / (1 - self.beta1 ** t)
+                Vdb_c = Vdb / (1 - self.beta1 ** t)
+
+                # RMSprop
+                SdW = self.beta2 * SdW + (1 - self.beta2) * dw ** 2
+                Sdb = self.beta2 * Sdb + (1 - self.beta2) * db ** 2
+
+                SdW_c = SdW / (1 - self.beta2 ** t)
+                Sdb_c = Sdb / (1 - self.beta2 ** t)
+
+                self.w -= self.alpha * (VdW_c / (np.sqrt(SdW_c) + 1e-8))
+                self.b -= self.alpha * (Vdb_c / (np.sqrt(Sdb_c) + 1e-8))
 
                 cost = self.__cost(params, X, y, self.lambd)
                 
