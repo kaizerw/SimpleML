@@ -1,12 +1,13 @@
 import numpy as np
 from scipy.optimize import minimize
+import matplotlib.pyplot as plt
 
 
 class ShallowNeuralNetwork:
 
     def __init__(self, alpha=1e-5, max_iter=1e4, tol=1e-3, n_hid=25, lambd=0, 
                  beta1=0.9, beta2=0.999, activation='relu', 
-                 method='batch_gradient_descent'):
+                 method='batch_gradient_descent', show_cost_plot=False):
         self.alpha = alpha # Learning rate
         self.max_iter = int(max_iter) # Max iterations
         self.tol = tol # Error tolerance
@@ -24,6 +25,7 @@ class ShallowNeuralNetwork:
         elif activation == 'relu':
             self.activation = self.__relu
             self.gradient = self.__relu_gradient
+        self.show_cost_plot = show_cost_plot # If show plot of cost function
 
     def fit(self, X, y):
         if len(np.unique(y)) > 2:
@@ -40,6 +42,17 @@ class ShallowNeuralNetwork:
         self.b2 = np.zeros(n_out)
 
         if self.method == 'batch_gradient_descent':
+            if self.show_cost_plot:
+                plt.show()
+                plt.xlabel('Iteration')
+                plt.ylabel('Cost')
+                axes = plt.gca()
+                axes.set_xlim(0, self.max_iter)
+                axes.set_ylim(0, self.__cost(self.__zip_params(self.W1, self.b1, 
+                                             self.W2, self.b2), X, y, self.lambd, 
+                                             n_in, self.n_hid, n_out))
+                line, = axes.plot([], [], 'r-')
+
             VdW1 = np.zeros(self.W1.shape)
             Vdb1 = np.zeros(self.b1.shape)
             VdW2 = np.zeros(self.W2.shape)
@@ -87,8 +100,17 @@ class ShallowNeuralNetwork:
                 cost = self.__cost(params, X, y, self.lambd, n_in, 
                                    self.n_hid, n_out)
 
+                if self.show_cost_plot:
+                    line.set_xdata(np.concatenate((line.get_xdata(), [t])))
+                    line.set_ydata(np.concatenate((line.get_ydata(), [cost])))
+                    plt.draw()
+                    plt.pause(1e-50)
+
                 if cost <= self.tol:
                     break
+            
+            if self.show_cost_plot:
+                plt.close()
 
         else:
             options = {'gtol': self.tol, 'maxiter': self.max_iter}

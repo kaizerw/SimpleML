@@ -1,12 +1,13 @@
 import numpy as np
 from scipy.optimize import minimize
+import matplotlib.pyplot as plt
 
 
 class DeepNeuralNetwork:
 
     def __init__(self, alpha=1e-5, max_iter=1e4, tol=1e-3, n_hid=(10, 5), 
                  lambd=0, beta1=0.9, beta2=0.999, activation='relu', 
-                 method='batch_gradient_descent'):
+                 method='batch_gradient_descent', show_cost_plot=False):
         self.alpha = alpha # Learning rate
         self.max_iter = int(max_iter) # Max iterations
         self.tol = tol # Error tolerance
@@ -24,6 +25,7 @@ class DeepNeuralNetwork:
         elif activation == 'relu':
             self.activation_hidden = self.__relu
             self.gradient_hidden = self.__relu_gradient
+        self.show_cost_plot = show_cost_plot # If show plot of cost function
 
     def fit(self, X, y):
         if len(np.unique(y)) > 2:
@@ -41,7 +43,8 @@ class DeepNeuralNetwork:
         self.W, self.b = {}, {}
         for l in range(1, self.L + 1):
             # He initialization
-            self.W[l] = np.random.randn(self.n_layers[l - 1], self.n_layers[l]) * np.sqrt(2 / self.n_layers[l - 1])
+            self.W[l] = (np.random.randn(self.n_layers[l - 1], self.n_layers[l]) 
+                         * np.sqrt(2 / self.n_layers[l - 1]))
             self.b[l] = np.zeros(self.n_layers[l])
 
         self.activations = {}
@@ -53,6 +56,16 @@ class DeepNeuralNetwork:
         self.gradients[self.L] = self.__sigmoid_gradient
 
         if self.method == 'batch_gradient_descent':
+            if self.show_cost_plot:
+                plt.show()
+                plt.xlabel('Iteration')
+                plt.ylabel('Cost')
+                axes = plt.gca()
+                axes.set_xlim(0, self.max_iter)
+                axes.set_ylim(0, self.__cost(self.__zip_params(self.W, self.b, 
+                              self.L), X, y, self.n_layers, self.L, self.lambd))
+                line, = axes.plot([], [], 'r-')
+
             VdW, Vdb, VdW_c, Vdb_c = {}, {}, {}, {}
             SdW, Sdb, SdW_c, Sdb_c = {}, {}, {}, {}
             for l in range(1, self.L + 1):
@@ -87,8 +100,17 @@ class DeepNeuralNetwork:
                 
                 cost = self.__cost(params, X, y, self.n_layers, self.L, self.lambd)
 
+                if self.show_cost_plot:
+                    line.set_xdata(np.concatenate((line.get_xdata(), [t])))
+                    line.set_ydata(np.concatenate((line.get_ydata(), [cost])))
+                    plt.draw()
+                    plt.pause(1e-50)
+
                 if cost <= self.tol:
                     break
+
+            if self.show_cost_plot:
+                plt.close()
 
         else:
             options = {'gtol': self.tol, 'maxiter': self.max_iter}

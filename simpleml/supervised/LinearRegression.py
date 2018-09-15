@@ -1,16 +1,18 @@
 import numpy as np
 from scipy.optimize import minimize
+import matplotlib.pyplot as plt
 
 
 class LinearRegression:
 
     def __init__(self, alpha=1e-3, max_iter=1e4, tol=1e-4, lambd=0, 
-                 method='batch_gradient_descent'):
+                 method='batch_gradient_descent', show_cost_plot=False):
         self.alpha = alpha # Learning rate
         self.max_iter = int(max_iter) # Max iterations
         self.tol = tol # Error tolerance
         self.lambd = lambd # Regularization constant
         self.method = method # Method to be used to optimize cost function
+        self.show_cost_plot = show_cost_plot # If show plot of cost function
 
     def fit(self, X, y):
         n = X.shape[1]
@@ -18,7 +20,17 @@ class LinearRegression:
         self.b = 0
 
         if self.method == 'batch_gradient_descent':
-            for _ in range(self.max_iter):
+            if self.show_cost_plot:
+                plt.show()
+                plt.xlabel('Iteration')
+                plt.ylabel('Cost')
+                axes = plt.gca()
+                axes.set_xlim(0, self.max_iter)
+                axes.set_ylim(0, self.__cost(np.concatenate((self.w, [self.b])), 
+                                             X, y, self.lambd))
+                line, = axes.plot([], [], 'r-')
+
+            for t in range(self.max_iter):
                 params = np.concatenate((self.w, [self.b]))
 
                 d = self.__gradient(params, X, y, self.lambd)
@@ -29,8 +41,17 @@ class LinearRegression:
 
                 cost = self.__cost(params, X, y, self.lambd)
 
+                if self.show_cost_plot:
+                    line.set_xdata(np.concatenate((line.get_xdata(), [t])))
+                    line.set_ydata(np.concatenate((line.get_ydata(), [cost])))
+                    plt.draw()
+                    plt.pause(1e-50)
+
                 if cost <= self.tol:
                     break
+
+            if self.show_cost_plot:
+                plt.close()
                     
         else:
             options = {'gtol': self.tol, 'maxiter': self.max_iter}
