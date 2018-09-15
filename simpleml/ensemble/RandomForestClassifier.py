@@ -5,10 +5,11 @@ from ..supervised.DecisionTreeClassifier import DecisionTreeClassifier
 
 class RandomForestClassifier:
 
-    def __init__(self, n_trees=10):
-        self.trees = [DecisionTreeClassifier(random_tree=True) 
-                       for _ in range(n_trees)]
+    def __init__(self, n_trees=10, n_random_features=None):
         self.n_trees = n_trees
+        self.trees = [DecisionTreeClassifier(random_tree=True, 
+                                             n_random_features=n_random_features) 
+                       for _ in range(self.n_trees)]
     
     def fit(self, X, y):
         n_samples = X.shape[0]

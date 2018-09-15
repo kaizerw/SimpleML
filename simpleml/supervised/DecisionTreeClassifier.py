@@ -6,41 +6,39 @@ from graphviz import Digraph
 class DecisionTreeClassifier:
 
     def __init__(self, criterion='information_gain', max_depth=1000, 
-                 one_split_by_feature=False, random_tree=False):
+                 one_split_by_feature=False, random_tree=False, 
+                 n_random_features=None):
         self.max_depth = max_depth
         self.one_split_by_feature = one_split_by_feature
         self.random_tree = random_tree
-        self.generate_id = count()
+        self.n_random_features = n_random_features
+        self._node_id_generator = count()
         self._evals = {'information_gain': self._information_gain, 
                        'gain_ratio': self._gain_ratio, 
                        'gini_index': self._gini_index}
         self._eval = self._evals[criterion]
 
     def fit(self, X, y):
-        self.n_samples, self.n_features = X.shape
-        self.classes = np.unique(y)
         self.X, self.y = X, y
+        self.n_samples, self.n_features = self.X.shape
+        self.classes = np.unique(self.y)
 
-        samples_idx = np.array(range(self.n_samples))
-        features_idx = np.array(range(self.n_features))
-
-        # If random tree then evaluate only sqrt('features_idx') features
-        if self.random_tree:
-            self.n_random_features = int(np.sqrt(features_idx.shape[0]))
+        samples_idx = np.arange(self.n_samples)
+        features_idx = np.arange(self.n_features)
 
         self._tree = self._step(samples_idx, features_idx)
 
     def _step(self, samples_idx, features_idx, depth=0):
-        node = {}
-        node['n_samples'] = samples_idx.shape[0]
-        node['is_leaf'] = False
-        node['id'] = next(self.generate_id)
+        node = {'n_samples': samples_idx.shape[0], 
+                'is_leaf': False, 
+                'id': next(self._node_id_generator)}
 
         # If all samples in 'samples_idx' have a same label 'y', 
         # return a leaf node labeled with 'y'
         if self._all_same_class(samples_idx):
             node['prediction'] = self.y[samples_idx[0]]
             node['is_leaf'] = True
+            node['entropy'] = self._entropy(samples_idx)
             return node
 
         # If the list of features is empty or depth equals to max depth
@@ -49,11 +47,11 @@ class DecisionTreeClassifier:
         if len(features_idx) == 0 or depth == self.max_depth:
             node['prediction'] = self._most_frequent_class(samples_idx)
             node['is_leaf'] = True
+            node['entropy'] = self._entropy(samples_idx)
             return node           
 
         # Select feature with best criterion division
-        best_feature, value = self._choose_best_feature(samples_idx, 
-                                                        features_idx)
+        best_feature, value = self._get_best_feature(samples_idx, features_idx)
 
         if self.random_tree:
             # Do not change available features (always will be the whole set)
@@ -72,7 +70,7 @@ class DecisionTreeClassifier:
 
         node['out_feature'] = best_feature
         node['kind'] = kind
-        node['eval'] = round(value, 3)
+        node['eval'] = value
 
         if kind == 'categorical':
             node['children'] = []
@@ -122,11 +120,10 @@ class DecisionTreeClassifier:
 
     def predict(self, X):
         n_samples = X.shape[0]
-        y_pred = np.zeros(n_samples)
+        y_pred = []
         for i in range(n_samples):
-            x = X[i, :]
-            y_pred[i] = self._predict(x, self._tree)
-        return y_pred
+            y_pred.append(self._predict(X[i, :], self._tree))
+        return np.array(y_pred)
 
     def _predict(self, x, node):
         if node['is_leaf']:
@@ -158,36 +155,23 @@ class DecisionTreeClassifier:
 
     def _all_same_class(self, samples_idx):
         for classe in self.classes:
-            count = sum(self.y[samples_idx] == classe)
-            if count == samples_idx.shape[0]:
+            if np.all(self.y[samples_idx] == classe):
                 return True
         return False
 
     def _most_frequent_class(self, samples_idx):
-        max_classe = None
-        max_samples = -np.inf
-        for classe in self.classes:
-            count = sum(self.y[samples_idx] == classe)
-            if count > max_samples:
-                max_samples = count
-                max_classe = classe
-        return max_classe
+        return np.argmax(np.bincount(self.y[samples_idx]))
 
-    def _choose_best_feature(self, samples_idx, features_idx):
+    def _get_best_feature(self, samples_idx, features_idx):
         # If random tree then evaluate only sqrt('features_idx') features
         if self.random_tree:
             idx = np.arange(0, features_idx.shape[0])
             np.random.shuffle(idx)
             features_idx = features_idx[idx[:self.n_random_features]]
 
-        best_feature = None
-        max_gain = -np.inf
-        for feature in features_idx:
-            gain = self._eval(samples_idx, feature)
-            if gain > max_gain:
-                max_gain = gain
-                best_feature = feature
-        return best_feature, max_gain
+        gains = [self._eval(samples_idx, feature) for feature in features_idx]
+        arg = np.argmax(gains)
+        return features_idx[arg], gains[arg]
 
     def _get_feature_kind(self, feature):
         kind = ''
@@ -204,7 +188,7 @@ class DecisionTreeClassifier:
             cuts = np.unique(self.X[samples_idx, feature])
         elif kind == 'numeric':
             # Select mean point as cut point of this feature
-            cuts.append(round(np.mean(self.X[samples_idx, feature]), 3))
+            cuts.append(np.mean(self.X[samples_idx, feature]))
         return cuts
 
     def _entropy(self, samples_idx, feature=None):
@@ -369,12 +353,14 @@ class DecisionTreeClassifier:
             label += f'n_samples = {n_samples}\n'
 
             if node['is_leaf']:
+                entropy = str(round(node['entropy'], 3))
                 prediction = node['prediction']
-                label += f"predicted class = {prediction}"
+                label += f'entropy = {entropy}\n'
+                label += f'predicted class = {prediction}'
                 color = colors[prediction]
                 shape = 'circle'
             else:
-                eval = str(node['eval'])
+                eval = str(round(node['eval'], 3))
                 label += f'eval = {eval}\n'
                 shape = 'square'
                 color = '#77777755'
