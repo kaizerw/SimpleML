@@ -20,13 +20,14 @@ from simpleml.model_selection import *
 from simpleml.metrics import *
 from simpleml.preprocessing import *
 from simpleml.ensemble import *
+from simpleml.plotting import *
 
 import matplotlib.pyplot as plt
 
 
 def test_linear_regression():
-    X, y = make_regression(n_samples=500, n_features=5, 
-                           n_informative=5, n_targets=1) 
+    X, y = make_regression(n_samples=100, n_features=1, 
+                           n_informative=2, n_targets=1, noise=5.0) 
 
     X = StandardScaler().fit(X).transform(X)
 
@@ -35,6 +36,8 @@ def test_linear_regression():
     model = LinearRegression()
     result = bootstrap(model, metric, X, y)
     print(f'simpleml BGD: mean={np.mean(result)}, std={np.std(result)}')
+
+    plot_regression(X, y, model)
 
     model = LinearRegression(method='BFGS')
     result = bootstrap(model, metric, X, y)
@@ -46,14 +49,18 @@ def test_linear_regression():
 
 
 def test_logistic_regression():
-    X, y = make_classification(n_samples=500, n_features=5, n_informative=5, 
+    X, y = make_classification(n_samples=100, n_features=2, n_informative=2, 
                                n_redundant=0, n_repeated=0, n_classes=2)
+
+    X = StandardScaler().fit(X).transform(X)
 
     metric = f1_score
 
     model = LogisticRegression()
     result = stratified_k_fold(model, metric, X, y)
     print(f'simpleml BGD: mean={np.mean(result)}, std={np.std(result)}')
+
+    plot_decision_boundary(X, y, model)
 
     model = LogisticRegression(method='BFGS')
     result = stratified_k_fold(model, metric, X, y)
@@ -500,29 +507,29 @@ def test_random_forest_classifier():
 
 if __name__ == '__main__':
     tests = [
-             test_linear_regression, 
+             #test_linear_regression, 
              test_logistic_regression,
-             test_shallow_neural_network, 
-             test_deep_neural_network,  
-             test_KNN_classifier, 
-             test_KNN_regressor,
-             test_decision_tree_classifier, 
-             test_show_decision_tree, 
-             test_gaussian_naive_bayes_classifier, 
-             test_bernoulli_naive_bayes_classifier, 
-             test_multinomial_naive_bayes_classifier, 
-             test_kmeans_clustering,
-             test_principal_component_analysis, 
-             test_metrics, 
-             test_preprocessing, 
-             test_holdout,
-             test_stratified_k_fold, 
-             test_leave_one_out, 
-             test_bootstrap, 
-             test_one_vs_rest_classifier, 
-             test_voting_classifier, 
-             test_bagging_classifier, 
-             test_random_forest_classifier
+             #test_shallow_neural_network, 
+             #test_deep_neural_network,  
+             #test_KNN_classifier, 
+             #test_KNN_regressor,
+             #test_decision_tree_classifier, 
+             #test_show_decision_tree, 
+             #test_gaussian_naive_bayes_classifier, 
+             #test_bernoulli_naive_bayes_classifier, 
+             #test_multinomial_naive_bayes_classifier, 
+             #test_kmeans_clustering,
+             #test_principal_component_analysis, 
+             #test_metrics, 
+             #test_preprocessing, 
+             #test_holdout,
+             #test_stratified_k_fold, 
+             #test_leave_one_out, 
+             #test_bootstrap, 
+             #test_one_vs_rest_classifier, 
+             #test_voting_classifier, 
+             #test_bagging_classifier, 
+             #test_random_forest_classifier
             ]
 
     for test in tests:
