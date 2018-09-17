@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 
 class LogisticRegression:
 
-    def __init__(self, alpha=1e-3, max_iter=1e4, tol=1e-4, lambd=0, 
+    def __init__(self, alpha=1e-4, max_iter=1e4, tol=1e-4, lambd=0, 
                  beta1=0.9, beta2=0.999, threshold=0.5, 
                  method='batch_gradient_descent', show_cost_plot=False):
         self.alpha = alpha # Learning rate
@@ -74,7 +74,7 @@ class LogisticRegression:
                     line.set_xdata(np.concatenate((line.get_xdata(), [t])))
                     line.set_ydata(np.concatenate((line.get_ydata(), [cost])))
                     plt.draw()
-                    plt.pause(1e-50)
+                    plt.pause(1e-10)
                 
                 if cost <= self.tol:
                     break

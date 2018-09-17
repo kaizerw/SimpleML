@@ -22,3 +22,14 @@ def plot_decision_boundary(X, y, model):
     plt.scatter(X[y == 0, 0], X[y == 0, 1], c='b')
     plt.scatter(X[y == 1, 0], X[y == 1, 1], c='r')
     plt.show()
+
+
+def plot_clustering(X, y_pred, model):
+    centroids = model.centroids
+    plt.figure()
+    plt.title('KMeans clustering with k=3')
+    plt.scatter(X[y_pred==0, 0], X[y_pred==0, 1], c='r', alpha=0.5)
+    plt.scatter(X[y_pred==1, 0], X[y_pred==1, 1], c='g', alpha=0.5)
+    plt.scatter(X[y_pred==2, 0], X[y_pred==2, 1], c='b', alpha=0.5)
+    plt.scatter(centroids[:, 0], centroids[:, 1], marker='o', s=120, c='k')
+    plt.show()
