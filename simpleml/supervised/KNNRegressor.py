@@ -12,24 +12,23 @@ class KNNRegressor:
         return sum(abs(i - j) ** self.p for i, j in zip(x1, x2)) ** (1 / self.p)
 
     def fit(self, X, y):
-        self.X_train = X
-        self.y_train = y
+        self.n_samples = X.shape[0]
+        self.X, self.y = X, y
 
-    def predict(self, X_test):
-        y_pred = np.zeros(X_test.shape[0])
+    def predict(self, X):
+        y_pred = []
         
-        for i in range(X_test.shape[0]):
-            # Calculate dists from all samples to X_test[i]
-            dists = []
-            for j in range(self.X_train.shape[0]):
-                dists.append([j, self._metric(self.X_train[j, :], 
-                                              X_test[i, :])])
+        for i in range(X.shape[0]):
+            # Calculate distances from all samples to X[i]
+            distances = []
+            for j in range(self.n_samples):
+                distances.append([j, self._metric(self.X[j, :], X[i, :])])
             
             # Collect the k closest samples
-            dists.sort(key=lambda i: i[1])
-            preds = [self.y_train[i[0]] for i in dists[:self.k]]
+            distances.sort(key=lambda i: i[1])
+            preds = [self.y[i[0]] for i in distances[:self.k]]
             
             # Predict target with the mean of the neighbors' targets
-            y_pred[i] = np.mean(preds)
+            y_pred.append(np.mean(preds))
 
-        return y_pred
+        return np.array(y_pred)
