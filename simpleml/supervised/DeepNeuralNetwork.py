@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 class DeepNeuralNetwork:
 
     def __init__(self, alpha=1e-5, max_iter=1e4, tol=1e-3, n_hid=(10, 5), 
-                 lambd=0, beta1=0.9, beta2=0.999, activation='relu', 
+                 lambd=10, beta1=0.9, beta2=0.999, activation='relu', 
                  method='batch_gradient_descent', show_cost_plot=False):
         self.alpha = alpha # Learning rate
         self.max_iter = int(max_iter) # Max iterations

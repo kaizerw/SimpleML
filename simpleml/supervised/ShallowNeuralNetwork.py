@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 
 class ShallowNeuralNetwork:
 
-    def __init__(self, alpha=1e-5, max_iter=1e4, tol=1e-3, n_hid=25, lambd=0, 
+    def __init__(self, alpha=1e-5, max_iter=1e4, tol=1e-3, n_hid=25, lambd=10, 
                  beta1=0.9, beta2=0.999, activation='relu', 
                  method='batch_gradient_descent', show_cost_plot=False):
         self.alpha = alpha # Learning rate
