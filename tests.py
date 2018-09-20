@@ -1,5 +1,6 @@
 from sklearn.linear_model import LinearRegression as SKLinearRegression
 from sklearn.linear_model import LogisticRegression as SKLogisticRegression
+from sklearn.svm import SVC as SKSVC
 from sklearn.neighbors import KNeighborsClassifier, KNeighborsRegressor
 from sklearn.tree import DecisionTreeClassifier as SKDecisionTreeClassifier
 from sklearn.neural_network import MLPClassifier
@@ -67,6 +68,23 @@ def test_logistic_regression():
     print(f'simpleml BFGS: mean={np.mean(result)}, std={np.std(result)}')
 
     model = SKLogisticRegression()
+    result = stratified_k_fold(model, metric, X, y)
+    print(f'sklearn: mean={np.mean(result)}, std={np.std(result)}')
+
+
+def test_support_vector_machine_classifier():
+    X, y = make_classification(n_samples=100, n_features=2, n_informative=2, 
+                               n_redundant=0, n_repeated=0, n_classes=2)
+
+    X = StandardScaler().fit(X).transform(X)
+
+    metric = f1_score
+
+    model = SupportVectorMachineClassifier()
+    result = stratified_k_fold(model, metric, X, y)
+    print(f'simpleml BGD: mean={np.mean(result)}, std={np.std(result)}')
+
+    model = SKSVC()
     result = stratified_k_fold(model, metric, X, y)
     print(f'sklearn: mean={np.mean(result)}, std={np.std(result)}')
 
@@ -500,29 +518,30 @@ def test_random_forest_classifier():
 
 if __name__ == '__main__':
     tests = [
-             test_linear_regression, 
-             test_logistic_regression,
-             test_shallow_neural_network, 
-             test_deep_neural_network,  
-             test_KNN_classifier, 
-             test_KNN_regressor,
-             test_decision_tree_classifier, 
-             test_show_decision_tree, 
-             test_gaussian_naive_bayes_classifier, 
-             test_bernoulli_naive_bayes_classifier, 
-             test_multinomial_naive_bayes_classifier, 
-             test_kmeans_clustering,
-             test_principal_component_analysis, 
-             test_metrics, 
-             test_preprocessing, 
-             test_holdout,
-             test_stratified_k_fold, 
-             test_leave_one_out, 
-             test_bootstrap, 
-             test_one_vs_rest_classifier, 
-             test_voting_classifier, 
-             test_bagging_classifier, 
-             test_random_forest_classifier
+             #test_linear_regression, 
+             #test_logistic_regression,
+             test_support_vector_machine_classifier, 
+             #test_shallow_neural_network, 
+             #test_deep_neural_network,  
+             #test_KNN_classifier, 
+             #test_KNN_regressor,
+             #test_decision_tree_classifier, 
+             #test_show_decision_tree, 
+             #test_gaussian_naive_bayes_classifier, 
+             #test_bernoulli_naive_bayes_classifier, 
+             #test_multinomial_naive_bayes_classifier, 
+             #test_kmeans_clustering,
+             #test_principal_component_analysis, 
+             #test_metrics, 
+             #test_preprocessing, 
+             #test_holdout,
+             #test_stratified_k_fold, 
+             #test_leave_one_out, 
+             #test_bootstrap, 
+             #test_one_vs_rest_classifier, 
+             #test_voting_classifier, 
+             #test_bagging_classifier, 
+             #test_random_forest_classifier
             ]
 
     for test in tests:

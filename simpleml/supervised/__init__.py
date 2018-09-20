@@ -1,5 +1,6 @@
 from .LinearRegression import LinearRegression
 from .LogisticRegression import LogisticRegression
+from .SupportVectorMachineClassifier import SupportVectorMachineClassifier
 from .DecisionTreeClassifier import DecisionTreeClassifier
 from .KNNClassifier import KNNClassifier
 from .KNNRegressor import KNNRegressor
