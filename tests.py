@@ -82,7 +82,7 @@ def test_support_vector_machine_classifier():
 
     model = SupportVectorMachineClassifier()
     result = stratified_k_fold(model, metric, X, y)
-    print(f'simpleml BGD: mean={np.mean(result)}, std={np.std(result)}')
+    print(f'simpleml: mean={np.mean(result)}, std={np.std(result)}')
 
     model = SKSVC()
     result = stratified_k_fold(model, metric, X, y)

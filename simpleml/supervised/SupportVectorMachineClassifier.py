@@ -6,31 +6,24 @@ from functools import partial
 
 class SupportVectorMachineClassifier:
 
-    def __init__(self, max_iter=1e4, tol=1e-4, C=0):
+    def __init__(self, max_iter=1e4, tol=1e-4, lambd=0):
         self.max_iter = int(max_iter) # Max iterations
         self.tol = tol # Error tolerance
-        self.C = C # Regularization constant
+        self.lambd = lambd # Regularization constant
         
     def fit(self, X, y):
         if len(np.unique(y)) > 2:
             raise Exception('This classifier only works with two classes')
 
-        n, m = X.shape
+        _, m = X.shape
         y = np.where(y==1, 1, -1)
         
         self.w, self.b = np.zeros(m), 0
-        self.zeta = np.zeros(n)
 
-        args = (X, y, self.C)
-        params = np.concatenate((self.w, [self.b], self.zeta))
-        res = minimize(self.__cost, params, args=args, 
-                       constraints=[{'type': 'ineq', 
-                                     'fun': partial(self.__constraint, i), 
-                                     'args': args} for i in range(n)], 
-                       bounds=[self.__bound(i, n, m) for i in range(len(params))])
-        self.w, self.b, self.zera = res.x[:m], res.x[m:m + 1], res.x[m + 1:]
-
-        print(self.w, self.b, self.zeta)
+        args = (X, y, self.lambd)
+        params = np.concatenate((self.w, [self.b]))
+        res = minimize(self.__cost, params, args=args)
+        self.w, self.b = res.x[:-1], res.x[-1]
 
         return self
 
@@ -47,17 +40,10 @@ class SupportVectorMachineClassifier:
         neg = 1 - pos
         return np.hstack((neg, pos))
 
-    def __cost(self, params, X, y, C):
-        _, m = X.shape
-        w, _, zeta = params[:m], params[m:m + 1], params[m + 1:]
-        return sum((1 / 2) * (w ** 2) + C * sum(zeta))
-
-    def __constraint(self, i, params, X, y, C):
-        _, m = X.shape
-        w, b, zeta = params[:m], params[m:m + 1], params[m + 1:]
-        return y[i] * (X[i, :] @ w + b) - (1 - zeta[i])
-
-    def __bound(self, i, n, m):
-        if i >= m + 1:
-            return (0, None)
-        return (None, None)
+    def __cost(self, params, X, y, lambd):
+        n, _ = X.shape
+        w, b = params[:-1], params[-1]
+        zeta = np.max(np.vstack((np.zeros_like(y), 1 - y * (X @ w + b))), axis=0)
+        cost = (1 / n) * sum(zeta)
+        cost += lambd * np.linalg.norm(w)
+        return cost
