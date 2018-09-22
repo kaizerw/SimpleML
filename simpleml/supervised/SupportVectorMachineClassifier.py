@@ -1,7 +1,6 @@
 import numpy as np
 from scipy.optimize import minimize
 import matplotlib.pyplot as plt
-from functools import partial
 
 
 class SupportVectorMachineClassifier:
@@ -33,12 +32,6 @@ class SupportVectorMachineClassifier:
     def predict(self, X):
         activation = self.__activation(X, self.w, self.b)
         return np.where(activation >= 0, 1, 0)
-
-    def predict_proba(self, X):
-        activation = self.__activation(X, self.w, self.b)
-        pos = np.reshape(activation, (-1, 1))
-        neg = 1 - pos
-        return np.hstack((neg, pos))
 
     def __cost(self, params, X, y, lambd):
         n, _ = X.shape

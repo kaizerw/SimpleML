@@ -1,6 +1,7 @@
 from sklearn.linear_model import LinearRegression as SKLinearRegression
 from sklearn.linear_model import LogisticRegression as SKLogisticRegression
-from sklearn.svm import SVC as SKSVC
+from sklearn.svm import LinearSVC as SKLinearSVC
+from sklearn.svm import SVR as SKSVR
 from sklearn.neighbors import KNeighborsClassifier, KNeighborsRegressor
 from sklearn.tree import DecisionTreeClassifier as SKDecisionTreeClassifier
 from sklearn.neural_network import MLPClassifier
@@ -84,8 +85,25 @@ def test_support_vector_machine_classifier():
     result = stratified_k_fold(model, metric, X, y)
     print(f'simpleml: mean={np.mean(result)}, std={np.std(result)}')
 
-    model = SKSVC()
+    model = SKLinearSVC(C=1e-10)
     result = stratified_k_fold(model, metric, X, y)
+    print(f'sklearn: mean={np.mean(result)}, std={np.std(result)}')
+
+
+def test_support_vector_machine_regressor():
+    X, y = make_regression(n_samples=500, n_features=5, 
+                           n_informative=5, n_targets=1) 
+
+    X = StandardScaler().fit(X).transform(X)
+
+    metric = r2_score
+
+    model = SupportVectorMachineRegressor()
+    result = bootstrap(model, metric, X, y)
+    print(f'simpleml: mean={np.mean(result)}, std={np.std(result)}')
+
+    model = SKSVR()
+    result = bootstrap(model, metric, X, y)
     print(f'sklearn: mean={np.mean(result)}, std={np.std(result)}')
 
 
@@ -521,6 +539,7 @@ if __name__ == '__main__':
              #test_linear_regression, 
              #test_logistic_regression,
              test_support_vector_machine_classifier, 
+             test_support_vector_machine_regressor, 
              #test_shallow_neural_network, 
              #test_deep_neural_network,  
              #test_KNN_classifier, 
