@@ -89,6 +89,19 @@ def test_support_vector_machine_classifier():
     result = stratified_k_fold(model, metric, X, y)
     print(f'sklearn: mean={np.mean(result)}, std={np.std(result)}')
 
+    X, y = make_classification(n_samples=500, n_features=5, n_informative=5, 
+                               n_redundant=0, n_repeated=0, n_classes=3)
+
+    X = StandardScaler().fit(X).transform(X)
+
+    model = OneVsRestClassifier(SupportVectorMachineClassifier())
+    result = stratified_k_fold(model, metric, X, y)
+    print(f'simpleml OVR: mean={np.mean(result)}, std={np.std(result)}')
+
+    model = SKOneVsRestClassifier(SKLinearSVC(C=1e-10))
+    result = stratified_k_fold(model, metric, X, y)
+    print(f'sklearn OVR: mean={np.mean(result)}, std={np.std(result)}')
+
 
 def test_support_vector_machine_regressor():
     X, y = make_regression(n_samples=500, n_features=5, 
@@ -538,7 +551,7 @@ if __name__ == '__main__':
     tests = [
              #test_linear_regression, 
              #test_logistic_regression,
-             #test_support_vector_machine_classifier, 
+             test_support_vector_machine_classifier, 
              #test_support_vector_machine_regressor, 
              #test_shallow_neural_network, 
              #test_deep_neural_network,  
@@ -549,7 +562,7 @@ if __name__ == '__main__':
              #test_gaussian_naive_bayes_classifier, 
              #test_bernoulli_naive_bayes_classifier, 
              #test_multinomial_naive_bayes_classifier, 
-             test_kmeans_clustering,
+             #test_kmeans_clustering,
              #test_principal_component_analysis, 
              #test_metrics, 
              #test_preprocessing, 

@@ -33,6 +33,13 @@ class SupportVectorMachineClassifier:
         activation = self.__activation(X, self.w, self.b)
         return np.where(activation >= 0, 1, 0)
 
+    def predict_proba(self, X):
+        activation = self.__activation(X, self.w, self.b)
+        activation = np.where(activation >= 0, 1, 0)
+        pos = np.reshape(activation, (-1, 1))
+        neg = 1 - pos
+        return np.hstack((neg, pos))
+
     def __cost(self, params, X, y, lambd):
         n, _ = X.shape
         w, b = params[:-1], params[-1]
