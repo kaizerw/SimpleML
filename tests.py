@@ -29,7 +29,7 @@ import matplotlib.pyplot as plt
 
 def test_linear_regression():
     X, y = make_regression(n_samples=100, n_features=1, 
-                           n_informative=2, n_targets=1, noise=5.0) 
+                           n_informative=2, n_targets=1, noise=10.0) 
 
     X = StandardScaler().fit(X).transform(X)
 
@@ -550,30 +550,30 @@ def test_random_forest_classifier():
 if __name__ == '__main__':
     tests = [
              test_linear_regression, 
-             test_logistic_regression,
-             test_support_vector_machine_classifier, 
-             test_support_vector_machine_regressor, 
-             test_shallow_neural_network, 
-             test_deep_neural_network,  
-             test_KNN_classifier, 
-             test_KNN_regressor,
-             test_decision_tree_classifier, 
-             test_show_decision_tree, 
-             test_gaussian_naive_bayes_classifier, 
-             test_bernoulli_naive_bayes_classifier, 
-             test_multinomial_naive_bayes_classifier, 
-             test_kmeans_clustering,
-             test_principal_component_analysis, 
-             test_metrics, 
-             test_preprocessing, 
-             test_holdout,
-             test_stratified_k_fold, 
-             test_leave_one_out, 
-             test_bootstrap, 
-             test_one_vs_rest_classifier, 
-             test_voting_classifier, 
-             test_bagging_classifier, 
-             test_random_forest_classifier
+             #test_logistic_regression,
+             #test_support_vector_machine_classifier, 
+             #test_support_vector_machine_regressor, 
+             #test_shallow_neural_network, 
+             #test_deep_neural_network,  
+             #test_KNN_classifier, 
+             #test_KNN_regressor,
+             #test_decision_tree_classifier, 
+             #test_show_decision_tree, 
+             #test_gaussian_naive_bayes_classifier, 
+             #test_bernoulli_naive_bayes_classifier, 
+             #test_multinomial_naive_bayes_classifier, 
+             #test_kmeans_clustering,
+             #test_principal_component_analysis, 
+             #test_metrics, 
+             #test_preprocessing, 
+             #test_holdout,
+             #test_stratified_k_fold, 
+             #test_leave_one_out, 
+             #test_bootstrap, 
+             #test_one_vs_rest_classifier, 
+             #test_voting_classifier, 
+             #test_bagging_classifier, 
+             #test_random_forest_classifier
             ]
 
     for test in tests:
