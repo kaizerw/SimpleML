@@ -550,9 +550,9 @@ def test_random_forest_classifier():
 if __name__ == '__main__':
     tests = [
              #test_linear_regression, 
-             test_logistic_regression,
-             #test_support_vector_machine_classifier, 
-             #test_support_vector_machine_regressor, 
+             #test_logistic_regression,
+             test_support_vector_machine_classifier, 
+             test_support_vector_machine_regressor, 
              #test_shallow_neural_network, 
              #test_deep_neural_network,  
              #test_KNN_classifier, 
