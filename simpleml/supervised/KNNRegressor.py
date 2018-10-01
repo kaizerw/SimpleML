@@ -28,7 +28,7 @@ class KNNRegressor:
             distances.sort(key=lambda i: i[1])
             preds = [self.y[i[0]] for i in distances[:self.k]]
             
-            # Predict target with the mean of the neighbors' targets
+            # Predict target with the mean of the neighbors targets
             y_pred.append(np.mean(preds))
 
         return np.array(y_pred)
