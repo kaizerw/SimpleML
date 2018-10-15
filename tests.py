@@ -570,8 +570,8 @@ if __name__ == '__main__':
              #test_stratified_k_fold, 
              #test_leave_one_out, 
              #test_bootstrap, 
-             test_one_vs_rest_classifier, 
-             #test_voting_classifier, 
+             #test_one_vs_rest_classifier, 
+             test_voting_classifier, 
              #test_bagging_classifier, 
              #test_random_forest_classifier
             ]
