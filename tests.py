@@ -572,8 +572,8 @@ if __name__ == '__main__':
              #test_bootstrap, 
              #test_one_vs_rest_classifier, 
              #test_voting_classifier, 
-             test_bagging_classifier, 
-             #test_random_forest_classifier
+             #test_bagging_classifier, 
+             test_random_forest_classifier
             ]
 
     for test in tests:
