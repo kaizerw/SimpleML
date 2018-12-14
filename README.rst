@@ -1,4 +1,6 @@
-## SimpleML: Simple Implementations of Machine Learning Algorithms in Python
+*************************************************************************
+SimpleML: Simple Implementations of Machine Learning Algorithms in Python
+*************************************************************************
 
 **Libraries used:** *numpy*, *scipy*, *matplotlib* and *graphviz*.
 
